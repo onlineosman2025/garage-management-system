@@ -1,2 +1,3 @@
-# Python dependencies for Garage Management System
-# No external dependencies needed - uses only Python standard library
+Flask==2.3.3
+Flask-CORS==4.0.0
+pathlib2==2.3.7
