@@ -543,18 +543,17 @@ def create_default_users():
     conn.close()
     
     if user_count == 0:
-        # Create initial admin account - CHANGE THESE CREDENTIALS!
+        # Create initial admin account
         print("[DB] Creating initial admin user...")
         create_user(
-            email='admin@yourdomain.com',  # CHANGE THIS
-            password='ChangeMeNow123!',     # CHANGE THIS
-            name='System Administrator',
+            email='owner@garage.com',
+            password='garage123',
+            name='Garage Owner',
             role='admin'
         )
         print("[DB] Initial admin user created!")
-        print("[DB] Email: admin@yourdomain.com")
-        print("[DB] Password: ChangeMeNow123!")
-        print("[DB] PLEASE CHANGE THESE CREDENTIALS AFTER FIRST LOGIN!")
+        print("[DB] Email: owner@garage.com")
+        print("[DB] Password: garage123")
 
 # ============= SETTINGS OPERATIONS =============
 
