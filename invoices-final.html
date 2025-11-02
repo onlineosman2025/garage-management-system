@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!-- FINAL WORKING VERSION - No service worker issues -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoices - Working</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #FF6600; color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; text-align: center; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #FF6600; }
+        .stat-label { color: #666; margin-top: 5px; }
+        .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .status-paid { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; }
+        .status-pending { background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 4px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 2px; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .success { background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .loading { text-align: center; padding: 40px; }
+        .login-form { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 400px; margin: 50px auto; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-login { width: 100%; padding: 12px; background: #FF6600; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Login Form -->
+        <div id="loginForm" class="login-form">
+            <h2>🔧 Garage Management System</h2>
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="email" value="admin@garage.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="password" value="admin123" required>
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+            <div id="loginError" style="display: none;" class="error"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div id="mainContent" style="display: none;">
+            <div class="container">
+                <div class="header">
+                    <h1>📋 Invoice Management</h1>
+                    <p>✅ WORKING VERSION - Direct Railway API Connection</p>
+                </div>
+
+                <div id="successMessage" style="display: none;" class="success"></div>
+                <div id="errorMessage" style="display: none;" class="error"></div>
+
+                <!-- Stats -->
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalInvoices">0</div>
+                        <div class="stat-label">Total Invoices</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingInvoices">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="paidInvoices">0</div>
+                        <div class="stat-label">Paid</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalRevenue">AED 0</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                </div>
+
+                <!-- Invoices Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoicesTableBody">
+                            <tr>
+                                <td colspan="6" class="loading">Loading invoices...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('=== INVOICES WORKING - FINAL VERSION ===');
+        console.log('No service worker - Direct API connection');
+        console.log('Version: 2025-11-02-19-15-WORKING');
+
+        // Railway API Configuration
+        const API_URL = 'https://garage-management-system-production.up.railway.app/api';
+        let authToken = localStorage.getItem('auth_token');
+        let allInvoices = [];
+
+        // Show message
+        function showMessage(message, isError = false) {
+            const el = isError ? document.getElementById('errorMessage') : document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Login handler
+        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('[WORKING] Login attempt to:', API_URL);
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                console.log('[WORKING] Login response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                authToken = data.token;
+                localStorage.setItem('auth_token', authToken);
+                
+                console.log('[WORKING] Login successful, token saved');
+                
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                await loadInvoices();
+            } catch (error) {
+                console.error('[WORKING] Login error:', error);
+                const errorEl = document.getElementById('loginError');
+                errorEl.textContent = 'Login failed: ' + error.message;
+                errorEl.style.display = 'block';
+            }
+        });
+
+        // Load invoices
+        async function loadInvoices() {
+            console.log('[WORKING] Loading invoices from Railway API...');
+            
+            try {
+                const response = await fetch(`${API_URL}/invoices`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('[WORKING] Invoices response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                allInvoices = await response.json();
+                console.log('[WORKING] ✅ Successfully loaded invoices:', allInvoices.length, 'items');
+                
+                updateStats();
+                displayInvoices();
+                
+                showMessage(`✅ Successfully loaded ${allInvoices.length} invoices from Railway backend!`);
+            } catch (error) {
+                console.error('[WORKING] ❌ Error loading invoices:', error);
+                showMessage('Error loading invoices: ' + error.message, true);
+                
+                document.getElementById('invoicesTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            <strong style="color: #dc3545;">❌ Error loading invoices</strong><br>
+                            ${error.message}<br>
+                            <small>Check console for details</small>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = allInvoices.length;
+            const pending = allInvoices.filter(i => i.status === 'pending').length;
+            const paid = allInvoices.filter(i => i.status === 'paid').length;
+            const revenue = allInvoices
+                .filter(i => i.status === 'paid')
+                .reduce((sum, i) => sum + (parseFloat(i.total_amount) || parseFloat(i.amount) || 0), 0);
+
+            document.getElementById('totalInvoices').textContent = total;
+            document.getElementById('pendingInvoices').textContent = pending;
+            document.getElementById('paidInvoices').textContent = paid;
+            document.getElementById('totalRevenue').textContent = `AED ${revenue.toFixed(2)}`;
+        }
+
+        // Display invoices
+        function displayInvoices() {
+            const tbody = document.getElementById('invoicesTableBody');
+            
+            if (allInvoices.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px;">
+                            📋 No invoices found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = allInvoices.map(invoice => {
+                const amount = parseFloat(invoice.amount) || 0;
+                const taxRate = parseFloat(invoice.tax_rate) || 0;
+                const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+                const totalAmount = invoice.total_amount || (amount + taxAmount);
+                
+                const statusClass = invoice.status === 'paid' ? 'status-paid' : 'status-pending';
+                
+                return `
+                    <tr>
+                        <td><strong>#${invoice.id}</strong></td>
+                        <td>${invoice.customer_name || 'Unknown'}</td>
+                        <td><strong>AED ${totalAmount.toFixed(2)}</strong></td>
+                        <td><span class="${statusClass}">${(invoice.status || 'pending').toUpperCase()}</span></td>
+                        <td>${invoice.due_date || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="viewInvoice(${invoice.id})">View</button>
+                            ${invoice.status !== 'paid' ? `<button class="btn btn-success" onclick="markAsPaid(${invoice.id})">Mark Paid</button>` : ''}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Action functions
+        function viewInvoice(id) {
+            const invoice = allInvoices.find(i => i.id === id);
+            if (!invoice) return;
+            alert(`Invoice #${id}\n\nCustomer: ${invoice.customer_name}\nAmount: AED ${invoice.total_amount || invoice.amount}\nStatus: ${invoice.status}`);
+        }
+
+        async function markAsPaid(id) {
+            if (!confirm('Mark this invoice as paid?')) return;
+            showMessage('Mark as paid feature available in full version');
+        }
+
+        // Check if already logged in
+        if (authToken) {
+            console.log('[WORKING] Token found, loading main content');
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            loadInvoices();
+        } else {
+            console.log('[WORKING] No token, showing login form');
+        }
+    </script>
+</body>
+</html>
