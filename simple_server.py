@@ -18,6 +18,7 @@ import uae_vat_system
 
 PORT = int(os.environ.get('PORT', 3000))
 HOST = '0.0.0.0'
+# CORS fix applied - version 2.0
 
 class SimpleHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
