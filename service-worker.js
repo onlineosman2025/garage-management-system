@@ -3,7 +3,7 @@
  * Provides offline functionality and caching
  */
 
-const CACHE_NAME = 'gms-v1.3.0';
+const CACHE_NAME = 'gms-v1.4.0';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache on install
@@ -80,7 +80,20 @@ self.addEventListener('fetch', event => {
     
     // NEVER cache API requests - always go to network
     if (event.request.url.includes('/api/')) {
-        event.respondWith(fetch(event.request));
+        event.respondWith(
+            fetch(event.request).catch(error => {
+                console.error('[Service Worker] API fetch failed:', error);
+                // Return a proper error response instead of offline page
+                return new Response(
+                    JSON.stringify({ error: 'Network error', offline: true }),
+                    { 
+                        status: 503, 
+                        statusText: 'Service Unavailable',
+                        headers: { 'Content-Type': 'application/json' }
+                    }
+                );
+            })
+        );
         return;
     }
 
