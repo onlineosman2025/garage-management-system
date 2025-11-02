@@ -13,6 +13,9 @@ import reports
 import permissions
 import file_manager
 import uae_vat_system
+from pathlib import Path
+
+DB_FILE = Path(__file__).parent / 'garage.db'
 
 app = Flask(__name__, static_folder='.', static_url_path='')
 
@@ -38,6 +41,16 @@ print("=" * 50)
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
+
+@app.route('/api/test')
+def test():
+    """Simple test endpoint to check if Flask is working"""
+    return jsonify({
+        'status': 'Flask is working!',
+        'time': datetime.now().isoformat(),
+        'database_file': str(DB_FILE),
+        'database_exists': DB_FILE.exists()
+    })
 
 @app.route('/<path:filename>')
 def static_files(filename):
@@ -261,13 +274,17 @@ def garage_info():
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     try:
+        print(f"[LOGIN] Login request received")
         data = request.get_json()
+        print(f"[LOGIN] Request data: {data}")
+        
         email = data.get('username')  # Frontend sends 'username' but we treat it as email
         password = data.get('password')
         
         print(f"[LOGIN DEBUG] Email: {email}, Password: {password}")
         
         if not email or not password:
+            print(f"[LOGIN ERROR] Missing email or password")
             return jsonify({'error': 'Email and password are required'}), 400
         
         user = db.authenticate_user(email, password)
