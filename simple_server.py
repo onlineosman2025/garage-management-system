@@ -1395,7 +1395,7 @@ def main():
         print("Port 3000 might be in use. Try running the cleanup first.")
     except KeyboardInterrupt:
         print("\n[OK] Server stopped")
+        os._exit(0)  # Add this line to exit the process after stopping the server
 
 if __name__ == "__main__":
     main()
->>>>>>> 2a22edd54cdfbbee4f30184ec9eb384e8eecd136
