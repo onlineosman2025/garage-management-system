@@ -9,6 +9,9 @@ class GarageAPI {
     // Authentication
     async login(email, password) {
         try {
+            console.log('[API DEBUG] Login called with:', { email, password });
+            console.log('[API DEBUG] Base URL:', this.baseURL);
+            
             const response = await fetch(`${this.baseURL}/auth/login`, {
                 method: 'POST',
                 headers: {
@@ -17,7 +20,12 @@ class GarageAPI {
                 body: JSON.stringify({ email, password })
             });
 
+            console.log('[API DEBUG] Response status:', response.status);
+            console.log('[API DEBUG] Response ok:', response.ok);
+
             if (!response.ok) {
+                const errorText = await response.text();
+                console.log('[API DEBUG] Error response:', errorText);
                 throw new Error('Invalid credentials');
             }
 

@@ -512,13 +512,21 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            // Mobile debugging
+            console.log('[MOBILE DEBUG] Login attempt');
+            console.log('[MOBILE DEBUG] Email:', email);
+            console.log('[MOBILE DEBUG] Password:', password);
+            console.log('[MOBILE DEBUG] User Agent:', navigator.userAgent);
+            
             // Show loading
             document.getElementById('loading').style.display = 'block';
             document.querySelector('.login-btn').disabled = true;
             
             try {
                 // Real API login call
+                console.log('[MOBILE DEBUG] Calling API.login...');
                 const loginData = await api.login(email, password);
+                console.log('[MOBILE DEBUG] API Response:', loginData);
                 
                 // Determine user role and redirect based on actual user data
                 const userRole = loginData.user.role || 'customer';
