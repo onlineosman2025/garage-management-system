@@ -265,10 +265,13 @@ def login():
         email = data.get('username')  # Frontend sends 'username' but we treat it as email
         password = data.get('password')
         
+        print(f"[LOGIN DEBUG] Email: {email}, Password: {password}")
+        
         if not email or not password:
             return jsonify({'error': 'Email and password are required'}), 400
         
         user = db.authenticate_user(email, password)
+        print(f"[LOGIN DEBUG] User authenticated: {user}")
         if user:
             if 'password_hash' in user:
                 del user['password_hash']
@@ -353,6 +356,16 @@ def check_auth():
             'authenticated': False,
             'message': 'Not authenticated'
         })
+
+@app.route('/api/debug/users', methods=['GET'])
+def debug_users():
+    """Debug endpoint to check users in database"""
+    users = db.get_all_users()
+    print(f"[DEBUG] Users in database: {users}")
+    return jsonify({
+        'count': len(users),
+        'users': users
+    })
 
 # Dashboard routes
 @app.route('/api/dashboard/revenue', methods=['GET'])
