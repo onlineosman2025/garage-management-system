@@ -19,13 +19,6 @@ import uae_vat_system
 PORT = int(os.environ.get('PORT', 3000))
 HOST = '0.0.0.0'
 
-# Demo users
-DEMO_USERS = {
-    'admin@garage.com': {'password': 'admin123', 'role': 'admin', 'name': 'System Administrator'},
-    'owner@garage.com': {'password': 'garage123', 'role': 'garage_owner', 'name': 'Ahmed Al-Rashid'},
-    'customer@email.com': {'password': 'customer123', 'role': 'customer', 'name': 'Sarah Johnson'}
-}
-
 class SimpleHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -402,7 +395,7 @@ class SimpleHandler(http.server.SimpleHTTPRequestHandler):
                 response = {
                     'access_token': f'token_{user["id"]}_{secrets.token_hex(16)}',
                     'user': {'id': user['id'], 'email': user['email'], 'name': user['name'], 'role': user['role']},
-                    'garage': {'id': 1, 'name': garage_info.get('name', ''), 'address': garage_info.get('address', '')}
+                    'garage': {'id': 1, 'name': garage_info.get('name', 'Garage Management System'), 'address': garage_info.get('address', '')}
                 }
                 self.send_json(response)
             else:
