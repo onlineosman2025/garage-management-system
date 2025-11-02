@@ -278,7 +278,7 @@ def login():
         data = request.get_json()
         print(f"[LOGIN] Request data: {data}")
         
-        email = data.get('username')  # Frontend sends 'username' but we treat it as email
+        email = data.get('email') or data.get('username')  # Handle both email and username
         password = data.get('password')
         
         print(f"[LOGIN DEBUG] Email: {email}, Password: {password}")
