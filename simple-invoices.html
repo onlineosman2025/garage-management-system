@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Invoices - Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .header { background: #FF6600; color: white; padding: 20px; border-radius: 10px; }
+        .error { background: #f8d7da; color: #721c24; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .success { background: #d4edda; color: #155724; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+        th { background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Simple Invoices Test</h1>
+        <p>Direct Railway API - No cache issues</p>
+    </div>
+
+    <div id="loginSection">
+        <h2>Login</h2>
+        <input type="email" id="email" value="admin@garage.com" placeholder="Email"><br><br>
+        <input type="password" id="password" value="admin123" placeholder="Password"><br><br>
+        <button class="btn" onclick="login()">Login</button>
+        <div id="loginError" class="error" style="display: none;"></div>
+    </div>
+
+    <div id="invoiceSection" style="display: none;">
+        <h2>📋 Invoices</h2>
+        <div id="message"></div>
+        <button class="btn" onclick="loadInvoices()">Load Invoices</button>
+        <table id="invoiceTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4">Click "Load Invoices" to fetch data</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        console.log('=== SIMPLE INVOICES TEST ===');
+        console.log('Timestamp:', new Date().toISOString());
+        console.log('API URL: https://garage-management-system-production.up.railway.app/api');
+
+        const API_URL = 'https://garage-management-system-production.up.railway.app/api';
+        let authToken = localStorage.getItem('auth_token');
+
+        function showMessage(msg, isError = false) {
+            const el = document.getElementById('message');
+            el.textContent = msg;
+            el.className = isError ? 'error' : 'success';
+            el.style.display = 'block';
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('Login attempt to:', API_URL);
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                console.log('Login response status:', response.status);
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                authToken = data.token;
+                localStorage.setItem('auth_token', authToken);
+                
+                console.log('Login successful');
+                
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('invoiceSection').style.display = 'block';
+                
+                showMessage('✅ Login successful! Click "Load Invoices" to test API.');
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('loginError').textContent = 'Login failed: ' + error.message;
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        async function loadInvoices() {
+            console.log('Loading invoices from:', API_URL + '/invoices');
+            
+            try {
+                const response = await fetch(`${API_URL}/invoices`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                console.log('Invoices response status:', response.status);
+                console.log('Response URL:', response.url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const invoices = await response.json();
+                console.log('✅ Successfully loaded invoices:', invoices.length, 'items');
+                
+                displayInvoices(invoices);
+                showMessage(`✅ Successfully loaded ${invoices.length} invoices from Railway backend!`);
+            } catch (error) {
+                console.error('❌ Error loading invoices:', error);
+                showMessage('❌ Error loading invoices: ' + error.message, true);
+            }
+        }
+
+        function displayInvoices(invoices) {
+            const tbody = document.querySelector('#invoiceTable tbody');
+            
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4">📋 No invoices found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = invoices.map(invoice => `
+                <tr>
+                    <td>#${invoice.id}</td>
+                    <td>${invoice.customer_name || 'Unknown'}</td>
+                    <td>AED ${invoice.total_amount || invoice.amount || 0}</td>
+                    <td>${invoice.status || 'pending'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Check if already logged in
+        if (authToken) {
+            console.log('Token found, showing invoice section');
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('invoiceSection').style.display = 'block';
+            showMessage('✅ Already logged in! Click "Load Invoices" to test API.');
+        }
+    </script>
+</body>
+</html>
