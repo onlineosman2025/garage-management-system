@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instant Fix - GMS</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #111;
+            padding: 30px;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+        }
+        h1 { color: #0ff; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover { background: #0ff; }
+        .section {
+            background: #222;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #0f0;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        pre {
+            background: #000;
+            padding: 15px;
+            overflow-x: auto;
+            border: 1px solid #0f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #0f0;
+            padding: 10px;
+            text-align: left;
+        }
+        th { background: #003300; }
+        .bad { background: #330000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ INSTANT FIX - Invoice Customer Names</h1>
+        
+        <div class="section">
+            <h2>Step 1: Diagnose</h2>
+            <button onclick="diagnose()">🔍 Check Current Data</button>
+            <div id="diagnosis"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 2: Fix</h2>
+            <button onclick="fixAll()">🔧 FIX ALL INVOICES NOW</button>
+            <div id="fixResults"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 3: Verify</h2>
+            <button onclick="verify()">✅ Verify Fix</button>
+            <button onclick="window.location.href='/invoices.html'">📋 Go to Invoices</button>
+            <div id="verification"></div>
+        </div>
+    </div>
+
+    <script>
+        async function diagnose() {
+            const output = document.getElementById('diagnosis');
+            output.innerHTML = '<p class="warning">Checking...</p>';
+
+            try {
+                // Get invoices
+                const invResp = await fetch('http://localhost:3000/api/invoices');
+                const invoices = await invResp.json();
+
+                // Get customers
+                const custResp = await fetch('http://localhost:3000/api/customers');
+                const customers = await custResp.json();
+
+                let html = '<h3>Current State:</h3>';
+                html += `<p>Total Invoices: ${invoices.length}</p>`;
+                html += `<p>Total Customers: ${customers.length}</p>`;
+
+                // Show customers
+                html += '<h4>Available Customers:</h4>';
+                html += '<table><tr><th>ID</th><th>Name</th></tr>';
+                customers.forEach(c => {
+                    html += `<tr><td>${c.id}</td><td>${c.name}</td></tr>`;
+                });
+                html += '</table>';
+
+                // Show invoices with issues
+                html += '<h4>Invoice Status:</h4>';
+                html += '<table><tr><th>Invoice ID</th><th>Customer ID</th><th>Current Display</th><th>Status</th></tr>';
+                
+                invoices.forEach(inv => {
+                    const customer = customers.find(c => c.id === inv.customer_id);
+                    const displayName = inv.customer_name || 'Unknown';
+                    const isGood = customer && displayName !== 'Unknown';
+                    const rowClass = isGood ? '' : ' class="bad"';
+                    const status = isGood ? '✅ OK' : '❌ BROKEN';
+                    
+                    html += `<tr${rowClass}>`;
+                    html += `<td>#${inv.id}</td>`;
+                    html += `<td>${inv.customer_id || 'NULL'}</td>`;
+                    html += `<td>${displayName}</td>`;
+                    html += `<td>${status}</td>`;
+                    html += '</tr>';
+                });
+                html += '</table>';
+
+                // Find broken invoices
+                const broken = invoices.filter(inv => {
+                    const customer = customers.find(c => c.id === inv.customer_id);
+                    return !customer || inv.customer_name === 'Unknown';
+                });
+
+                if (broken.length > 0) {
+                    html += `<p class="error">⚠️ Found ${broken.length} broken invoice(s)</p>`;
+                    html += '<p class="warning">Click "FIX ALL INVOICES NOW" to repair them</p>';
+                } else {
+                    html += '<p class="success">✅ All invoices are OK!</p>';
+                }
+
+                output.innerHTML = html;
+
+            } catch (error) {
+                output.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function fixAll() {
+            const output = document.getElementById('fixResults');
+            output.innerHTML = '<p class="warning">Fixing invoices...</p>';
+
+            try {
+                // Get current data
+                const invResp = await fetch('http://localhost:3000/api/invoices');
+                const invoices = await invResp.json();
+
+                const custResp = await fetch('http://localhost:3000/api/customers');
+                const customers = await custResp.json();
+
+                let html = '<h3>Fix Results:</h3>';
+                let fixed = 0;
+                let deleted = 0;
+                let skipped = 0;
+
+                for (const invoice of invoices) {
+                    const customer = customers.find(c => c.id === invoice.customer_id);
+                    
+                    if (!customer) {
+                        // Customer doesn't exist - delete invoice
+                        try {
+                            await fetch(`http://localhost:3000/api/invoices/${invoice.id}`, {
+                                method: 'DELETE'
+                            });
+                            html += `<p class="warning">🗑️ Deleted Invoice #${invoice.id} (customer_id ${invoice.customer_id} not found)</p>`;
+                            deleted++;
+                        } catch (err) {
+                            html += `<p class="error">❌ Failed to delete Invoice #${invoice.id}</p>`;
+                        }
+                    } else if (invoice.customer_name === 'Unknown' || !invoice.customer_name) {
+                        // Customer exists but name is wrong - this shouldn't happen with enrichment
+                        html += `<p class="success">✅ Invoice #${invoice.id} → Customer ID ${invoice.customer_id} exists (${customer.name})</p>`;
+                        fixed++;
+                    } else {
+                        html += `<p>⏭️ Invoice #${invoice.id} is already OK (${invoice.customer_name})</p>`;
+                        skipped++;
+                    }
+                }
+
+                html += '<hr>';
+                html += `<p class="success"><strong>Summary:</strong></p>`;
+                html += `<p>✅ Fixed: ${fixed}</p>`;
+                html += `<p>🗑️ Deleted: ${deleted}</p>`;
+                html += `<p>⏭️ Skipped: ${skipped}</p>`;
+                html += '<p class="success"><strong>Refresh the invoices page to see changes!</strong></p>';
+
+                output.innerHTML = html;
+
+            } catch (error) {
+                output.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        async function verify() {
+            const output = document.getElementById('verification');
+            output.innerHTML = '<p class="warning">Verifying...</p>';
+
+            try {
+                const invResp = await fetch('http://localhost:3000/api/invoices');
+                const invoices = await invResp.json();
+
+                const custResp = await fetch('http://localhost:3000/api/customers');
+                const customers = await custResp.json();
+
+                let html = '<h3>Verification Results:</h3>';
+                html += '<table><tr><th>Invoice ID</th><th>Amount</th><th>Customer Name</th><th>Status</th></tr>';
+
+                let allGood = true;
+                invoices.forEach(inv => {
+                    const customer = customers.find(c => c.id === inv.customer_id);
+                    const displayName = inv.customer_name || 'Unknown';
+                    const isGood = customer && displayName !== 'Unknown';
+                    
+                    if (!isGood) allGood = false;
+                    
+                    const rowClass = isGood ? '' : ' class="bad"';
+                    const status = isGood ? '✅' : '❌';
+                    
+                    html += `<tr${rowClass}>`;
+                    html += `<td>#${inv.id}</td>`;
+                    html += `<td>AED ${inv.amount}</td>`;
+                    html += `<td>${displayName}</td>`;
+                    html += `<td>${status}</td>`;
+                    html += '</tr>';
+                });
+                html += '</table>';
+
+                if (allGood) {
+                    html += '<p class="success">🎉 ALL INVOICES ARE FIXED! 🎉</p>';
+                    html += '<p>All invoices now show correct customer names.</p>';
+                } else {
+                    html += '<p class="error">⚠️ Some invoices still have issues</p>';
+                    html += '<p>Try running "FIX ALL INVOICES NOW" again</p>';
+                }
+
+                output.innerHTML = html;
+
+            } catch (error) {
+                output.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        // Auto-diagnose on load
+        window.addEventListener('DOMContentLoaded', () => {
+            diagnose();
+        });
+    </script>
+</body>
+</html>

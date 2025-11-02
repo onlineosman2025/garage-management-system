@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normalize Invoice Data - GMS</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #111;
+            padding: 30px;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+        }
+        h1 { color: #0ff; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 5px;
+        }
+        button:hover { background: #0ff; }
+        .section {
+            background: #222;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #0f0;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .warning { color: #ff0; }
+        pre {
+            background: #000;
+            padding: 15px;
+            overflow-x: auto;
+            border: 1px solid #0f0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #0f0;
+            padding: 10px;
+            text-align: left;
+        }
+        th { background: #003300; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Normalize Invoice Data</h1>
+        <p class="warning">This tool will check and fix invoice data structure issues</p>
+        
+        <div class="section">
+            <h2>Current Invoice Data</h2>
+            <button onclick="checkData()">📊 Check Current Data</button>
+            <div id="currentData"></div>
+        </div>
+
+        <div class="section">
+            <h2>Issues Found</h2>
+            <div id="issues"></div>
+        </div>
+
+        <div class="section">
+            <h2>Actions</h2>
+            <button onclick="showSQLFix()">📝 Show SQL Fix</button>
+            <button onclick="window.location.href='/invoices.html'">📋 View Invoices</button>
+            <div id="sqlFix"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentInvoices = [];
+        let currentCustomers = [];
+
+        async function checkData() {
+            const output = document.getElementById('currentData');
+            const issuesOutput = document.getElementById('issues');
+            output.innerHTML = '<p class="warning">Loading...</p>';
+
+            try {
+                // Fetch raw invoice data
+                const invResp = await fetch('http://localhost:3000/api/invoices');
+                currentInvoices = await invResp.json();
+
+                const custResp = await fetch('http://localhost:3000/api/customers');
+                currentCustomers = await custResp.json();
+
+                // Display current data
+                let html = '<h3>Raw Invoice Data:</h3>';
+                html += '<pre>' + JSON.stringify(currentInvoices, null, 2) + '</pre>';
+                output.innerHTML = html;
+
+                // Analyze issues
+                let issuesHtml = '<h3>Data Structure Analysis:</h3>';
+                let hasIssues = false;
+
+                currentInvoices.forEach(inv => {
+                    issuesHtml += `<h4>Invoice #${inv.id}:</h4><ul>`;
+                    
+                    // Check customer_id type
+                    if (typeof inv.customer_id === 'string') {
+                        issuesHtml += `<li class="warning">⚠️ customer_id is string "${inv.customer_id}" (should be integer)</li>`;
+                        hasIssues = true;
+                    }
+
+                    // Check for customer existence
+                    const custId = parseInt(inv.customer_id);
+                    const customer = currentCustomers.find(c => c.id === custId);
+                    if (!customer) {
+                        issuesHtml += `<li class="error">❌ Customer ID ${custId} not found</li>`;
+                        hasIssues = true;
+                    } else {
+                        issuesHtml += `<li class="success">✅ Customer: ${customer.name}</li>`;
+                    }
+
+                    // Check for required fields
+                    if (!inv.tax_rate && !inv.vat) {
+                        issuesHtml += `<li class="error">❌ Missing tax_rate field</li>`;
+                        hasIssues = true;
+                    } else if (inv.vat && !inv.tax_rate) {
+                        issuesHtml += `<li class="warning">⚠️ Has "vat" field but missing "tax_rate"</li>`;
+                        hasIssues = true;
+                    }
+
+                    if (!inv.tax_amount) {
+                        issuesHtml += `<li class="warning">⚠️ Missing tax_amount (calculated field)</li>`;
+                        hasIssues = true;
+                    }
+
+                    if (!inv.total_amount) {
+                        issuesHtml += `<li class="warning">⚠️ Missing total_amount (calculated field)</li>`;
+                        hasIssues = true;
+                    }
+
+                    if (!inv.description) {
+                        issuesHtml += `<li class="warning">⚠️ Missing description</li>`;
+                    }
+
+                    if (!inv.due_date) {
+                        issuesHtml += `<li class="warning">⚠️ Missing due_date</li>`;
+                    }
+
+                    if (!inv.payment_terms) {
+                        issuesHtml += `<li class="warning">⚠️ Missing payment_terms</li>`;
+                    }
+
+                    issuesHtml += '</ul>';
+                });
+
+                if (!hasIssues) {
+                    issuesHtml += '<p class="success">✅ No critical issues found!</p>';
+                } else {
+                    issuesHtml += '<p class="error">⚠️ Issues found - see details above</p>';
+                    issuesHtml += '<p class="warning">The backend code has been updated to handle these issues automatically.</p>';
+                    issuesHtml += '<p class="success">Just restart the server and refresh the invoices page!</p>';
+                }
+
+                issuesOutput.innerHTML = issuesHtml;
+
+            } catch (error) {
+                output.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+
+        function showSQLFix() {
+            const output = document.getElementById('sqlFix');
+            
+            let html = '<h3>Backend Fix (Already Applied):</h3>';
+            html += '<p class="success">The server code has been updated to:</p>';
+            html += '<ul>';
+            html += '<li>✅ Convert string customer_id to integer</li>';
+            html += '<li>✅ Calculate missing tax_amount and total_amount</li>';
+            html += '<li>✅ Enrich with customer names automatically</li>';
+            html += '<li>✅ Handle both old and new data formats</li>';
+            html += '</ul>';
+            
+            html += '<h4>What You Need to Do:</h4>';
+            html += '<ol>';
+            html += '<li class="warning">Stop the server (Ctrl+C)</li>';
+            html += '<li class="warning">Start the server (START.bat)</li>';
+            html += '<li class="warning">Refresh invoices page (Ctrl+F5)</li>';
+            html += '</ol>';
+
+            html += '<h4>Expected Result:</h4>';
+            html += '<table>';
+            html += '<tr><th>Invoice</th><th>Customer</th><th>Amount</th><th>Status</th></tr>';
+            
+            currentInvoices.forEach(inv => {
+                const custId = parseInt(inv.customer_id);
+                const customer = currentCustomers.find(c => c.id === custId);
+                const customerName = customer ? customer.name : 'Unknown';
+                
+                html += '<tr>';
+                html += `<td>#${inv.id}</td>`;
+                html += `<td>${customerName}</td>`;
+                html += `<td>AED ${inv.amount}</td>`;
+                html += `<td>${inv.status}</td>`;
+                html += '</tr>';
+            });
+            
+            html += '</table>';
+
+            output.innerHTML = html;
+        }
+
+        // Auto-run on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkData();
+        });
+    </script>
+</body>
+</html>

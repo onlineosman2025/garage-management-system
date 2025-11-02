@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Test Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #FF6B35;
+        }
+        button {
+            background: #FF6B35;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #e55a2b;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        input, select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔧 Settings Test Page</h1>
+        <p>This page tests if settings are being saved and loaded correctly.</p>
+    </div>
+
+    <div class="card">
+        <h2>Current Settings</h2>
+        <button onclick="loadAndDisplay()">🔄 Reload Settings</button>
+        <button onclick="clearSettings()">🗑️ Clear All Settings</button>
+        <div id="currentSettings"></div>
+    </div>
+
+    <div class="card">
+        <h2>Test Save Settings</h2>
+        <div>
+            <label>Currency:</label>
+            <select id="testCurrency">
+                <option value="AED">AED</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="SAR">SAR</option>
+            </select>
+        </div>
+        <div>
+            <label>Tax Rate (%):</label>
+            <input type="number" id="testTaxRate" value="5" step="0.1" min="0" max="100">
+        </div>
+        <div>
+            <label>Working Hours:</label>
+            <input type="text" id="testWorkingHours" value="Sunday - Thursday: 8:00 AM - 6:00 PM" style="width: 300px;">
+        </div>
+        <br>
+        <button onclick="testSave()">💾 Save Test Settings</button>
+        <div id="saveResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>SettingsManager Test</h2>
+        <button onclick="testSettingsManager()">🧪 Test SettingsManager</button>
+        <div id="settingsManagerResult"></div>
+    </div>
+
+    <script src="js/settings-manager.js"></script>
+    <script>
+        // Load and display current settings
+        function loadAndDisplay() {
+            const display = document.getElementById('currentSettings');
+            
+            // Check localStorage
+            const localSettings = localStorage.getItem('garage_settings');
+            
+            if (localSettings) {
+                const settings = JSON.parse(localSettings);
+                display.innerHTML = `
+                    <h3>✅ Settings Found in localStorage</h3>
+                    <pre>${JSON.stringify(settings, null, 2)}</pre>
+                `;
+            } else {
+                display.innerHTML = `
+                    <div class="error">
+                        <strong>❌ No settings found in localStorage</strong>
+                    </div>
+                `;
+            }
+        }
+
+        // Clear all settings
+        function clearSettings() {
+            if (confirm('Are you sure you want to clear all settings?')) {
+                localStorage.removeItem('garage_settings');
+                loadAndDisplay();
+                document.getElementById('saveResult').innerHTML = `
+                    <div class="success">✅ Settings cleared!</div>
+                `;
+            }
+        }
+
+        // Test save
+        function testSave() {
+            const currency = document.getElementById('testCurrency').value;
+            const taxRate = parseFloat(document.getElementById('testTaxRate').value);
+            const workingHours = document.getElementById('testWorkingHours').value;
+
+            const settings = {
+                garage: {
+                    name: 'Test Garage',
+                    email: 'test@garage.com',
+                    phone: '+971 4 123 4567',
+                    website: '',
+                    address: 'Test Address',
+                    description: 'Test Description'
+                },
+                business: {
+                    currency: currency,
+                    timezone: 'Asia/Dubai',
+                    language: 'en',
+                    dateFormat: 'DD/MM/YYYY',
+                    workingHours: workingHours,
+                    taxRate: taxRate
+                },
+                notifications: {
+                    emailNotifications: true,
+                    smsNotifications: false,
+                    jobAlerts: true,
+                    paymentReminders: true,
+                    stockAlerts: true,
+                    dailyReports: false
+                },
+                security: {
+                    twoFactorAuth: false,
+                    loginAlerts: true
+                }
+            };
+
+            console.log('Saving settings:', settings);
+            localStorage.setItem('garage_settings', JSON.stringify(settings));
+
+            // Also save via SettingsManager if available
+            if (window.SettingsManager) {
+                window.SettingsManager.saveAll(settings);
+            }
+
+            document.getElementById('saveResult').innerHTML = `
+                <div class="success">
+                    <strong>✅ Settings Saved!</strong><br>
+                    Currency: ${currency}<br>
+                    Tax Rate: ${taxRate}%<br>
+                    Working Hours: ${workingHours}
+                </div>
+            `;
+
+            loadAndDisplay();
+        }
+
+        // Test SettingsManager
+        function testSettingsManager() {
+            const result = document.getElementById('settingsManagerResult');
+            
+            if (window.SettingsManager) {
+                const currency = window.SettingsManager.getCurrency();
+                const taxRate = window.SettingsManager.getTaxRate();
+                const workingHours = window.SettingsManager.getWorkingHours();
+                const garageName = window.SettingsManager.getGarageName();
+
+                result.innerHTML = `
+                    <div class="success">
+                        <h3>✅ SettingsManager is working!</h3>
+                        <strong>Garage Name:</strong> ${garageName}<br>
+                        <strong>Currency:</strong> ${currency}<br>
+                        <strong>Tax Rate:</strong> ${taxRate}%<br>
+                        <strong>Working Hours:</strong> ${workingHours}<br>
+                    </div>
+                `;
+            } else {
+                result.innerHTML = `
+                    <div class="error">
+                        <strong>❌ SettingsManager not found!</strong><br>
+                        Make sure settings-manager.js is loaded.
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-load on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAndDisplay();
+        });
+    </script>
+</body>
+</html>

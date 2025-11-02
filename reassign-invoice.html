@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reassign Invoice - GMS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Reassign Invoice to Customer</h1>
+        
+        <div class="info">
+            <strong>Quick Fix for Invoice #5</strong><br>
+            This tool will reassign Invoice #5 (AED 800) to Osman (Customer ID: 6)
+        </div>
+
+        <div class="section">
+            <div class="form-group">
+                <label>Invoice ID</label>
+                <input type="number" id="invoiceId" value="5" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Select Customer</label>
+                <select id="customerId">
+                    <option value="">Loading customers...</option>
+                </select>
+            </div>
+
+            <button onclick="reassignInvoice()">Reassign Invoice</button>
+        </div>
+
+        <div id="result"></div>
+
+        <button onclick="window.location.href='/invoices.html'" style="background: #6c757d; margin-top: 20px;">
+            View Invoices
+        </button>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function loadCustomers() {
+            try {
+                const customers = await api.getCustomers();
+                const select = document.getElementById('customerId');
+                
+                select.innerHTML = '<option value="">Select Customer</option>' +
+                    customers.map(c => {
+                        const selected = c.name === 'Osman' ? 'selected' : '';
+                        return `<option value="${c.id}" ${selected}>${c.name} (ID: ${c.id})</option>`;
+                    }).join('');
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<div class="error">Error loading customers: ${error.message}</div>`;
+            }
+        }
+
+        async function reassignInvoice() {
+            const invoiceId = document.getElementById('invoiceId').value;
+            const customerId = document.getElementById('customerId').value;
+
+            if (!customerId) {
+                document.getElementById('result').innerHTML = 
+                    '<div class="error">Please select a customer</div>';
+                return;
+            }
+
+            try {
+                // Update invoice with new customer_id
+                const response = await fetch(`http://localhost:3000/api/invoices/${invoiceId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${api.token}`
+                    },
+                    body: JSON.stringify({
+                        customer_id: parseInt(customerId)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update invoice');
+                }
+
+                const result = await response.json();
+                
+                document.getElementById('result').innerHTML = `
+                    <div class="success">
+                        <h3>✅ Success!</h3>
+                        <p>Invoice #${invoiceId} has been reassigned to customer ID ${customerId}</p>
+                        <p>The invoice will now show the correct customer name.</p>
+                    </div>
+                `;
+
+                // Refresh customer list to show the update
+                setTimeout(() => {
+                    window.location.href = '/invoices.html';
+                }, 2000);
+
+            } catch (error) {
+                document.getElementById('result').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Load customers on page load
+        window.addEventListener('DOMContentLoaded', loadCustomers);
+    </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Diagnostic</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #fff;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .success {
+            color: #4ade80;
+        }
+        .error {
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Currency Diagnostic Tool</h1>
+    
+    <div class="section">
+        <h2>Current Settings in localStorage</h2>
+        <pre id="currentSettings">Loading...</pre>
+    </div>
+
+    <div class="section">
+        <h2>SettingsManager Values</h2>
+        <pre id="settingsManager">Loading...</pre>
+    </div>
+
+    <div class="section">
+        <h2>Test Currency Formatting</h2>
+        <input type="number" id="testAmount" value="1000" style="padding: 10px; width: 200px;">
+        <button onclick="testFormat()">Test Format</button>
+        <pre id="formatResult"></pre>
+    </div>
+
+    <div class="section">
+        <h2>Actions</h2>
+        <button onclick="fixCurrency()">Fix Currency to AED</button>
+        <button onclick="clearSettings()">Clear All Settings</button>
+        <button onclick="location.reload()">Refresh</button>
+        <pre id="actionResult"></pre>
+    </div>
+
+    <script src="js/settings-manager.js"></script>
+    <script>
+        function displayCurrentSettings() {
+            const raw = localStorage.getItem('garage_settings');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                document.getElementById('currentSettings').textContent = JSON.stringify(parsed, null, 2);
+            } else {
+                document.getElementById('currentSettings').textContent = 'No settings found in localStorage';
+            }
+        }
+
+        function displaySettingsManager() {
+            if (window.SettingsManager) {
+                const info = {
+                    currency: SettingsManager.getCurrency(),
+                    currencySymbol: SettingsManager.getCurrencySymbol(),
+                    taxRate: SettingsManager.getTaxRate(),
+                    garageName: SettingsManager.getGarageName(),
+                    allSettings: SettingsManager.getAll()
+                };
+                document.getElementById('settingsManager').textContent = JSON.stringify(info, null, 2);
+            } else {
+                document.getElementById('settingsManager').textContent = 'SettingsManager not available';
+            }
+        }
+
+        function testFormat() {
+            const amount = parseFloat(document.getElementById('testAmount').value);
+            if (window.SettingsManager) {
+                const formatted = SettingsManager.formatCurrency(amount);
+                const currency = SettingsManager.getCurrency();
+                const symbol = SettingsManager.getCurrencySymbol();
+                
+                document.getElementById('formatResult').innerHTML = 
+                    `<span class="success">Amount: ${amount}</span>\n` +
+                    `<span class="success">Currency: ${currency}</span>\n` +
+                    `<span class="success">Symbol: ${symbol}</span>\n` +
+                    `<span class="success">Formatted: ${formatted}</span>`;
+            } else {
+                document.getElementById('formatResult').innerHTML = 
+                    '<span class="error">SettingsManager not available</span>';
+            }
+        }
+
+        function fixCurrency() {
+            if (window.SettingsManager) {
+                SettingsManager.set('business.currency', 'AED');
+                SettingsManager.set('business.currencySymbol', 'AED');
+                document.getElementById('actionResult').innerHTML = 
+                    '<span class="success">✓ Currency fixed to AED</span>';
+                setTimeout(() => {
+                    displayCurrentSettings();
+                    displaySettingsManager();
+                }, 100);
+            }
+        }
+
+        function clearSettings() {
+            if (confirm('Are you sure you want to clear all settings?')) {
+                localStorage.removeItem('garage_settings');
+                document.getElementById('actionResult').innerHTML = 
+                    '<span class="success">✓ Settings cleared</span>';
+                setTimeout(() => {
+                    displayCurrentSettings();
+                    displaySettingsManager();
+                }, 100);
+            }
+        }
+
+        // Initialize
+        displayCurrentSettings();
+        displaySettingsManager();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#FF6600">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <title>Invoice Management - GMS</title>
+    <link rel="stylesheet" href="professional_modal_styles.css">
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #FFA726 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .desktop-nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #FF6B35 0%, #FFA726 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            color: #333;
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 12px 14px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.7em;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            color: #FF6B35;
+            font-size: 1.4em;
+            font-weight: 700;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            color: #333;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-family: inherit;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #FF6B35;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .invoices-table {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9f9f9;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            color: #666;
+            font-weight: 600;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        td {
+            padding: 16px;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .invoice-id {
+            font-weight: 600;
+            color: #FF6B35;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+        }
+
+        .status-paid {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+        }
+
+        .status-overdue {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+        }
+
+        .amount {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-view {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-view:hover {
+            background: rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-pay {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-pay:hover {
+            background: rgba(16, 185, 129, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .btn-whatsapp {
+            background: rgba(37, 211, 102, 0.2);
+            color: #25d366;
+            border: 1px solid rgba(37, 211, 102, 0.3);
+        }
+
+        .btn-whatsapp:hover {
+            background: rgba(37, 211, 102, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #cbd5e0;
+        }
+
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #cbd5e0;
+        }
+
+        /* Invoice Detail Modal */
+        .invoice-detail {
+            padding: 20px;
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(120, 119, 198, 0.2);
+        }
+
+        .invoice-number {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .invoice-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+        }
+
+        .info-label {
+            color: #94a3b8;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #e2e8f0;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .invoice-amounts {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            color: #e2e8f0;
+        }
+
+        .amount-row.total {
+            border-top: 2px solid rgba(120, 119, 198, 0.3);
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        
+        /* Mobile Card View for Invoices */
+        .mobile-invoice-cards {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .invoices-table {
+                display: none;
+            }
+            
+            .mobile-invoice-cards {
+                display: block;
+            }
+            
+            .invoice-card {
+                background: white;
+                border-radius: 12px;
+                padding: 16px;
+                margin-bottom: 12px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                border-left: 4px solid #FF6600;
+            }
+            
+            .invoice-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            
+            .invoice-card-id {
+                font-weight: 700;
+                font-size: 1.1em;
+                color: #FF6B35;
+            }
+            
+            .invoice-card-body {
+                display: grid;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+            
+            .invoice-card-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 6px 0;
+            }
+            
+            .invoice-card-label {
+                color: #666;
+                font-size: 0.85em;
+                font-weight: 500;
+            }
+            
+            .invoice-card-value {
+                color: #333;
+                font-weight: 600;
+                text-align: right;
+            }
+            
+            .invoice-card-actions {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                padding-top: 12px;
+                border-top: 1px solid #f0f0f0;
+            }
+            
+            .invoice-card-actions .action-btn {
+                flex: 1;
+                min-width: calc(33.333% - 4px);
+                padding: 6px 4px;
+                font-size: 0.7em;
+                text-align: center;
+                justify-content: center;
+                display: flex;
+                align-items: center;
+                border-radius: 5px;
+            }
+            
+            .invoice-card-actions .action-btn .btn-icon {
+                display: none;
+            }
+            
+            .logo {
+                font-size: 1.2em !important;
+            }
+            
+            .header-actions .btn {
+                padding: 10px 16px !important;
+                font-size: 0.85em !important;
+            }
+            
+            .page-header h1 {
+                font-size: 1.5em !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1em !important;
+            }
+            
+            .header {
+                padding: 12px 15px !important;
+            }
+            
+            .header-actions .btn {
+                padding: 8px 12px !important;
+                font-size: 0.8em !important;
+            }
+            
+            .btn span {
+                display: none;
+            }
+            
+            .page-header h1 {
+                font-size: 1.3em !important;
+            }
+            
+            .invoice-card-actions .action-btn {
+                min-width: calc(25% - 5px);
+                padding: 5px 3px;
+                font-size: 0.9em;
+            }
+            
+            .invoice-card-actions .action-btn .btn-text {
+                display: none !important;
+            }
+            
+            .invoice-card-actions .action-btn .btn-icon {
+                display: inline !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📄 Invoice Management</div>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="openNewInvoiceModal()">+ New Invoice</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📋 All Invoices</h1>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <h3>Total Invoices</h3>
+                <div class="value" id="totalInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending</h3>
+                <div class="value" id="pendingInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Paid</h3>
+                <div class="value" id="paidInvoices">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Revenue</h3>
+                <div class="value" id="totalRevenue">AED 0</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="statusFilter" onchange="filterInvoices()">
+                    <option value="">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="overdue">Overdue</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Customer</label>
+                <select id="customerFilter" onchange="filterInvoices()">
+                    <option value="">All Customers</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Search invoices..." oninput="filterInvoices()">
+            </div>
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="invoices-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Tax</th>
+                        <th>Total</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <tr>
+                        <td colspan="8" class="loading">Loading invoices...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Mobile Card View -->
+        <div class="mobile-invoice-cards" id="mobileInvoiceCards">
+            <div class="loading">Loading invoices...</div>
+        </div>
+    </div>
+
+    <script src="hamburger-menu.js"></script>
+    <script src="mobile-table-cards.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="js/api.js"></script>
+    <script src="professional_notifications.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        let allInvoices = [];
+        let allCustomers = [];
+
+        // Load invoices on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!api.isAuthenticated()) {
+                window.location.href = '/index.html';
+                return;
+            }
+            
+            await loadCustomers();
+            await loadInvoices();
+        });
+
+        async function loadCustomers() {
+            try {
+                allCustomers = await api.getCustomers();
+                const customerFilter = document.getElementById('customerFilter');
+                customerFilter.innerHTML = '<option value="">All Customers</option>' +
+                    allCustomers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            } catch (error) {
+                console.error('Error loading customers:', error);
+            }
+        }
+
+        async function loadInvoices() {
+            try {
+                // Force fresh data - no cache
+                const response = await fetch('http://localhost:3000/api/invoices?_=' + Date.now());
+                allInvoices = await response.json();
+                console.log('Loaded invoices:', allInvoices);
+                updateStats();
+                displayInvoices(allInvoices);
+            } catch (error) {
+                console.error('Error loading invoices:', error);
+                document.getElementById('invoicesTableBody').innerHTML = 
+                    '<tr><td colspan="8" class="empty-state"><div class="empty-state-icon">⚠️</div><h3>Error loading invoices</h3><p>' + error.message + '</p></td></tr>';
+            }
+        }
+
+        function updateStats() {
+            const total = allInvoices.length;
+            const pending = allInvoices.filter(i => i.status === 'pending').length;
+            const paid = allInvoices.filter(i => i.status === 'paid').length;
+            const revenue = allInvoices
+                .filter(i => i.status === 'paid')
+                .reduce((sum, i) => {
+                    const amount = parseFloat(i.amount) || 0;
+                    const taxRate = parseFloat(i.tax_rate) || 0;
+                    const total = i.total_amount || (amount + (amount * taxRate / 100));
+                    return sum + total;
+                }, 0);
+
+            document.getElementById('totalInvoices').textContent = total;
+            document.getElementById('pendingInvoices').textContent = pending;
+            document.getElementById('paidInvoices').textContent = paid;
+            document.getElementById('totalRevenue').textContent = 'AED ' + revenue.toFixed(2);
+        }
+
+        function displayInvoices(invoices) {
+            const tbody = document.getElementById('invoicesTableBody');
+            const mobileCards = document.getElementById('mobileInvoiceCards');
+            
+            if (invoices.length === 0) {
+                const emptyMessage = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📄</div>
+                        <h3>No invoices found</h3>
+                        <p>Create your first invoice to get started</p>
+                    </div>
+                `;
+                tbody.innerHTML = `<tr><td colspan="8">${emptyMessage}</td></tr>`;
+                mobileCards.innerHTML = emptyMessage;
+                return;
+            }
+
+            // Desktop table view
+            tbody.innerHTML = invoices.map(invoice => {
+                const status = getInvoiceStatus(invoice);
+                const amount = parseFloat(invoice.amount) || 0;
+                const taxRate = parseFloat(invoice.tax_rate) || 0;
+                const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+                const totalAmount = invoice.total_amount || (amount + taxAmount);
+                
+                return `
+                    <tr>
+                        <td><span class="invoice-id">#${invoice.id}</span></td>
+                        <td>${invoice.customer_name || 'Unknown'}</td>
+                        <td>AED ${amount.toFixed(2)}</td>
+                        <td>${taxRate}%</td>
+                        <td class="amount">AED ${totalAmount.toFixed(2)}</td>
+                        <td>${formatDate(invoice.due_date)}</td>
+                        <td><span class="status-badge status-${status}">${status}</span></td>
+                        <td>
+                            <div class="actions">
+                                <button class="action-btn btn-view" onclick="viewInvoice(${invoice.id})" title="View Details">👁️</button>
+                                <button class="action-btn btn-pdf" onclick="downloadPDF(${invoice.id})" title="Download PDF">📄</button>
+                                <button class="action-btn btn-whatsapp" onclick="shareWhatsApp(${invoice.id})" title="Share on WhatsApp">💬</button>
+                                <button class="action-btn btn-email" onclick="sendInvoiceEmail(${invoice.id})" title="Email Invoice">📧</button>
+                                ${invoice.status === 'pending' ? `<button class="action-btn btn-pay" onclick="markAsPaid(${invoice.id})" title="Mark as Paid">💰</button>` : ''}
+                                <button class="action-btn btn-delete" onclick="deleteInvoice(${invoice.id})" title="Delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Mobile card view
+            mobileCards.innerHTML = invoices.map(invoice => {
+                const status = getInvoiceStatus(invoice);
+                const amount = parseFloat(invoice.amount) || 0;
+                const taxRate = parseFloat(invoice.tax_rate) || 0;
+                const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+                const totalAmount = invoice.total_amount || (amount + taxAmount);
+                
+                return `
+                    <div class="invoice-card">
+                        <div class="invoice-card-header">
+                            <div class="invoice-card-id">#${invoice.id}</div>
+                            <span class="status-badge status-${status}">${status}</span>
+                        </div>
+                        <div class="invoice-card-body">
+                            <div class="invoice-card-row">
+                                <span class="invoice-card-label">Customer</span>
+                                <span class="invoice-card-value">${invoice.customer_name || 'Unknown'}</span>
+                            </div>
+                            <div class="invoice-card-row">
+                                <span class="invoice-card-label">Amount</span>
+                                <span class="invoice-card-value">AED ${amount.toFixed(2)}</span>
+                            </div>
+                            <div class="invoice-card-row">
+                                <span class="invoice-card-label">Tax (${taxRate}%)</span>
+                                <span class="invoice-card-value">AED ${taxAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="invoice-card-row">
+                                <span class="invoice-card-label">Total</span>
+                                <span class="invoice-card-value" style="color: #FF6B35; font-size: 1.1em;">AED ${totalAmount.toFixed(2)}</span>
+                            </div>
+                            <div class="invoice-card-row">
+                                <span class="invoice-card-label">Due Date</span>
+                                <span class="invoice-card-value">${formatDate(invoice.due_date)}</span>
+                            </div>
+                        </div>
+                        <div class="invoice-card-actions">
+                            <button class="action-btn btn-view" onclick="viewInvoice(${invoice.id})">
+                                <span class="btn-text">👁️ View</span>
+                                <span class="btn-icon">👁️</span>
+                            </button>
+                            <button class="action-btn btn-pdf" onclick="downloadPDF(${invoice.id})">
+                                <span class="btn-text">📄 PDF</span>
+                                <span class="btn-icon">📄</span>
+                            </button>
+                            <button class="action-btn btn-whatsapp" onclick="shareWhatsApp(${invoice.id})">
+                                <span class="btn-text">💬 WhatsApp</span>
+                                <span class="btn-icon">💬</span>
+                            </button>
+                            <button class="action-btn btn-email" onclick="sendInvoiceEmail(${invoice.id})">
+                                <span class="btn-text">📧 Email</span>
+                                <span class="btn-icon">📧</span>
+                            </button>
+                            ${invoice.status === 'pending' ? `
+                            <button class="action-btn btn-pay" onclick="markAsPaid(${invoice.id})">
+                                <span class="btn-text">💰 Pay</span>
+                                <span class="btn-icon">💰</span>
+                            </button>` : ''}
+                            <button class="action-btn btn-delete" onclick="deleteInvoice(${invoice.id})">
+                                <span class="btn-text">🗑️ Delete</span>
+                                <span class="btn-icon">🗑️</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getInvoiceStatus(invoice) {
+            if (invoice.status === 'paid') return 'paid';
+            
+            const dueDate = new Date(invoice.due_date);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (dueDate < today) return 'overdue';
+            return 'pending';
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function filterInvoices() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const customerFilter = document.getElementById('customerFilter').value;
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = allInvoices.filter(invoice => {
+                const status = getInvoiceStatus(invoice);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                const matchesCustomer = !customerFilter || invoice.customer_id == customerFilter;
+                const matchesSearch = !searchInput || 
+                    invoice.customer_name.toLowerCase().includes(searchInput) ||
+                    invoice.description.toLowerCase().includes(searchInput) ||
+                    invoice.id.toString().includes(searchInput);
+
+                return matchesStatus && matchesCustomer && matchesSearch;
+            });
+
+            displayInvoices(filtered);
+        }
+
+        async function viewInvoice(invoiceId) {
+            const invoice = allInvoices.find(i => i.id === invoiceId);
+            if (!invoice) return;
+
+            // Calculate amounts safely
+            const amount = parseFloat(invoice.amount) || 0;
+            const taxRate = parseFloat(invoice.tax_rate) || 0;
+            const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+            const totalAmount = invoice.total_amount || (amount + taxAmount);
+
+            const status = getInvoiceStatus(invoice);
+            const statusBadge = `<span class="status-badge status-${status}">${status.toUpperCase()}</span>`;
+
+            const modalContent = `
+                <div class="invoice-detail">
+                    <div class="invoice-header">
+                        <div>
+                            <div class="invoice-number">Invoice #${invoice.id}</div>
+                            <div style="color: #94a3b8; margin-top: 5px;">Created: ${formatDate(invoice.created_at)}</div>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+
+                    <div class="invoice-info-grid">
+                        <div>
+                            <div class="info-item">
+                                <div class="info-label">Customer</div>
+                                <div class="info-value">${invoice.customer_name || 'Unknown'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Due Date</div>
+                                <div class="info-value">${formatDate(invoice.due_date)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Payment Terms</div>
+                                <div class="info-value">${(invoice.payment_terms || 'net_30').replace('_', ' ').toUpperCase()}</div>
+                            </div>
+                        </div>
+                        <div>
+                            ${invoice.job_id ? `
+                            <div class="info-item">
+                                <div class="info-label">Related Job</div>
+                                <div class="info-value">Job #${invoice.job_id}</div>
+                            </div>
+                            ` : ''}
+                            ${invoice.paid_at ? `
+                            <div class="info-item">
+                                <div class="info-label">Paid Date</div>
+                                <div class="info-value">${formatDate(invoice.paid_at)}</div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Description</div>
+                        <div class="info-value">${invoice.description || 'No description'}</div>
+                    </div>
+
+                    <div class="invoice-amounts">
+                        <div class="amount-row">
+                            <span>Subtotal:</span>
+                            <span>AED ${amount.toFixed(2)}</span>
+                        </div>
+                        <div class="amount-row">
+                            <span>Tax (${taxRate}%):</span>
+                            <span>AED ${taxAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="amount-row total">
+                            <span>Total Amount:</span>
+                            <span>AED ${totalAmount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (window.dashboard) {
+                const modal = dashboard.createModal('Invoice Details', modalContent);
+                modal.show();
+            }
+        }
+
+        async function markAsPaid(invoiceId) {
+            if (!confirm('Mark this invoice as paid?')) return;
+
+            try {
+                await api.markInvoicePaid(invoiceId, { paid_at: new Date().toISOString().split('T')[0] });
+                alert('Invoice marked as paid!');
+                await loadInvoices();
+            } catch (error) {
+                alert('Error marking invoice as paid: ' + error.message);
+            }
+        }
+
+        async function deleteInvoice(invoiceId) {
+            if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) return;
+
+            try {
+                await api.deleteInvoice(invoiceId);
+                alert('Invoice deleted successfully!');
+                await loadInvoices();
+            } catch (error) {
+                alert('Error deleting invoice: ' + error.message);
+            }
+        }
+
+        // Open new invoice modal (reuse from dashboard)
+        async function openNewInvoiceModal() {
+            window.location.href = '/garage-dashboard.html';
+        }
+
+        // Download PDF
+        async function downloadPDF(invoiceId) {
+            try {
+                // Open PDF in new window for printing/saving
+                window.open(`/api/pdf/invoice/${invoiceId}`, '_blank');
+                showNotification('PDF opened in new window. Use Print > Save as PDF', 'success');
+            } catch (error) {
+                showNotification('Error generating PDF: ' + error.message, 'error');
+            }
+        }
+
+        // Send Invoice Email
+        async function sendInvoiceEmail(invoiceId) {
+            if (!confirm('Send this invoice via email to the customer?')) return;
+
+            try {
+                const response = await fetch(`/api/email/send/invoice/${invoiceId}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showNotification('✅ Invoice email sent successfully!', 'success');
+                } else {
+                    showNotification('❌ ' + (result.error || 'Failed to send email'), 'error');
+                }
+            } catch (error) {
+                showNotification('Error sending email: ' + error.message, 'error');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // WhatsApp Share Function
+        async function shareWhatsApp(invoiceId) {
+            const invoice = allInvoices.find(i => i.id === invoiceId);
+            if (!invoice) return;
+
+            const amount = parseFloat(invoice.amount) || 0;
+            const taxRate = parseFloat(invoice.tax_rate) || 0;
+            const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+            const totalAmount = invoice.total_amount || (amount + taxAmount);
+            
+            // Get garage info from settings
+            const garageName = localStorage.getItem('garageName') || 'Garage Management System';
+            
+            // Create WhatsApp message
+            const message = `
+🔧 *${garageName}*
+📄 *Invoice #${invoice.id}*
+
+👤 Customer: ${invoice.customer_name || 'Unknown'}
+💰 Amount: AED ${amount.toFixed(2)}
+📊 Tax (${taxRate}%): AED ${taxAmount.toFixed(2)}
+💵 *Total: AED ${totalAmount.toFixed(2)}*
+
+📅 Due Date: ${formatDate(invoice.due_date)}
+📝 Status: ${getInvoiceStatus(invoice).toUpperCase()}
+
+${invoice.description ? '📋 ' + invoice.description : ''}
+
+Thank you for your business! 🙏
+            `.trim();
+
+            // Encode message for URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Open WhatsApp with pre-filled message
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+            
+            showNotification('✅ Opening WhatsApp...', 'success');
+        }
+
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+            .btn-pdf { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+            .btn-email { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+            .btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); }
+            .btn-email:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
