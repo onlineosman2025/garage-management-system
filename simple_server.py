@@ -18,13 +18,7 @@ import uae_vat_system
 
 PORT = int(os.environ.get('PORT', 3000))
 HOST = '0.0.0.0'
-
-# Demo users
-DEMO_USERS = {
-    'admin@garage.com': {'password': 'admin123', 'role': 'admin', 'name': 'System Administrator'},
-    'owner@garage.com': {'password': 'garage123', 'role': 'garage_owner', 'name': 'Ahmed Al-Rashid'},
-    'customer@email.com': {'password': 'customer123', 'role': 'customer', 'name': 'Sarah Johnson'}
-}
+# CORS fix applied - version 2.0
 
 class SimpleHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -34,9 +28,12 @@ class SimpleHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
+        # Handle root path
         if self.path == '/':
             self.path = '/index.html'
-        elif self.path == '/api/dashboard/stats':
+        
+        # Handle API routes
+        if self.path == '/api/dashboard/stats':
             stats = db.get_dashboard_stats()
             self.send_json(stats)
             return
@@ -402,7 +399,7 @@ class SimpleHandler(http.server.SimpleHTTPRequestHandler):
                 response = {
                     'access_token': f'token_{user["id"]}_{secrets.token_hex(16)}',
                     'user': {'id': user['id'], 'email': user['email'], 'name': user['name'], 'role': user['role']},
-                    'garage': {'id': 1, 'name': garage_info.get('name', ''), 'address': garage_info.get('address', '')}
+                    'garage': {'id': 1, 'name': garage_info.get('name', 'Garage Management System'), 'address': garage_info.get('address', '')}
                 }
                 self.send_json(response)
             else:
@@ -653,7 +650,12 @@ class SimpleHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404, "Not found")
 
     def do_OPTIONS(self):
+        """Handle preflight CORS requests"""
         self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('Access-Control-Max-Age', '86400')
         self.end_headers()
 
     def send_json(self, data):
@@ -668,6 +670,8 @@ def main():
     print("=" * 50)
     print("GARAGE MANAGEMENT SYSTEM - WORKING!")
     print("=" * 50)
+    print(f"Working directory: {os.getcwd()}")
+    print(f"Files in directory: {os.listdir('.')[:10]}")
     print(f"Starting server on http://{HOST}:{PORT}")
     
     try:
@@ -676,10 +680,6 @@ def main():
             # Only open browser in local development
             if PORT == 3000:
                 webbrowser.open(f'http://{HOST}:{PORT}')
-            print("\nLogin accounts:")
-            print("  Admin: admin@garage.com / admin123")
-            print("  Owner: owner@garage.com / garage123")
-            print("  Customer: customer@email.com / customer123")
             print("\nPress Ctrl+C to stop")
             print("=" * 50)
             httpd.serve_forever()

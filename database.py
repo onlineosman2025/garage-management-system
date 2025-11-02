@@ -534,16 +534,26 @@ def delete_user(user_id):
     print(f"[DB] Deleted user #{user_id}")
 
 def create_default_users():
-    """Create default users if they don't exist"""
-    default_users = [
-        ('admin@garage.com', 'admin123', 'System Administrator', 'admin'),
-        ('owner@garage.com', 'garage123', 'Ahmed Al-Rashid', 'garage_owner'),
-        ('customer@email.com', 'customer123', 'Sarah Johnson', 'customer')
-    ]
+    """Create default admin user if no users exist"""
+    # Only create admin if database is completely empty
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT COUNT(*) as count FROM users')
+    user_count = cursor.fetchone()['count']
+    conn.close()
     
-    for email, password, name, role in default_users:
-        if not get_user_by_email(email):
-            create_user(email, password, name, role)
+    if user_count == 0:
+        # Create initial admin account
+        print("[DB] Creating initial admin user...")
+        create_user(
+            email='owner@garage.com',
+            password='garage123',
+            name='Garage Owner',
+            role='admin'
+        )
+        print("[DB] Initial admin user created!")
+        print("[DB] Email: owner@garage.com")
+        print("[DB] Password: garage123")
 
 # ============= SETTINGS OPERATIONS =============
 

@@ -1,8 +1,8 @@
 // Professional API Integration for Unified GMS
 class GarageAPI {
     constructor() {
-        // Use relative URL to work with any host/proxy
-        this.baseURL = '/api';
+        // Railway backend URL
+        this.baseURL = 'https://garage-management-system-production.up.railway.app/api';
         this.token = localStorage.getItem('auth_token');
     }
 
