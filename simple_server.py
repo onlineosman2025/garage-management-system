@@ -646,7 +646,7 @@ class SimpleHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_error(404, "Not found")
 
-      def do_OPTIONS(self):
+    def do_OPTIONS(self):
         """Handle preflight CORS requests"""
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
