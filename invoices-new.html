@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<!-- Version: 2025-11-02-18-35 - EMERGENCY FIX - NO LOCALHOST -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#FF6600">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <title>Invoice Management - GMS</title>
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <link rel="stylesheet" href="professional_modal_styles.css">
+    <link rel="stylesheet" href="mobile-table-cards.css">
+    <script src="js/pwa-installer.js"></script>
+    <script src="hamburger-menu.js"></script>
+    <script src="js/settings-manager.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="professional_notifications.js"></script>
+    <script src="mobile-table-cards.js"></script>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h1 class="mobile-title">Invoices</h1>
+        </div>
+        <div class="header-right">
+            <button class="add-btn" id="addInvoiceBtn">+</button>
+        </div>
+    </header>
+
+    <!-- Sidebar Menu -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Garage Management</h2>
+            <button class="close-sidebar" id="closeSidebar">×</button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="garage-dashboard.html">🏠 Dashboard</a></li>
+            <li><a href="invoices-new.html" class="active">🧾 Invoices</a></li>
+            <li><a href="customers.html">👥 Customers</a></li>
+            <li><a href="vehicles.html">🚗 Vehicles</a></li>
+            <li><a href="services.html">🔧 Services</a></li>
+            <li><a href="appointments.html">📅 Appointments</a></li>
+            <li><a href="inventory.html">📦 Inventory</a></li>
+            <li><a href="reports.html">📊 Reports</a></li>
+            <li><a href="settings.html">⚙️ Settings</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🧾</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalInvoices">0</div>
+                        <div class="stat-label">Total Invoices</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏳</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="pendingInvoices">0</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="paidInvoices">0</div>
+                        <div class="stat-label">Paid</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalRevenue">AED 0</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                        <option value="overdue">Overdue</option>
+                    </select>
+                    <select id="customerFilter" class="filter-select">
+                        <option value="">All Customers</option>
+                    </select>
+                    <input type="date" id="dateFilter" class="filter-input">
+                </div>
+            </div>
+
+            <!-- Invoices Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesTableBody">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">🧾</div>
+                                <h3>Loading invoices...</h3>
+                                <p>Please wait while we fetch your invoice data</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        // Initialize API
+        const api = new GarageAPI();
+        let allInvoices = [];
+        let allCustomers = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('[INVOICES-NEW] Loading fresh version - NO LOCALHOST');
+            
+            // Initialize components
+            if (window.hamburgerMenu) window.hamburgerMenu.init();
+            if (window.translations) window.translations.init();
+            if (window.notifications) window.notifications.init();
+            
+            // Load data
+            await loadCustomers();
+            await loadInvoices();
+            
+            // Setup filters
+            setupFilters();
+            
+            // Setup add button
+            document.getElementById('addInvoiceBtn').addEventListener('click', openNewInvoiceModal);
+        });
+
+        // Load customers
+        async function loadCustomers() {
+            try {
+                allCustomers = await api.getCustomers();
+                console.log('[INVOICES-NEW] Loaded customers:', allCustomers);
+                
+                const customerFilter = document.getElementById('customerFilter');
+                customerFilter.innerHTML = '<option value="">All Customers</option>' +
+                    allCustomers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            } catch (error) {
+                console.error('[INVOICES-NEW] Error loading customers:', error);
+            }
+        }
+
+        // Load invoices - FIXED VERSION
+        async function loadInvoices() {
+            try {
+                console.log('[INVOICES-NEW] Loading invoices from API...');
+                // Use the API class - NO LOCALHOST!
+                allInvoices = await api.getInvoices();
+                console.log('[INVOICES-NEW] Loaded invoices:', allInvoices);
+                updateStats();
+                displayInvoices(allInvoices);
+            } catch (error) {
+                console.error('[INVOICES-NEW] Error loading invoices:', error);
+                document.getElementById('invoicesTableBody').innerHTML = 
+                    '<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">⚠️</div><h3>Error loading invoices</h3><p>' + error.message + '</p></td></tr>';
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            const total = allInvoices.length;
+            const pending = allInvoices.filter(i => i.status === 'pending').length;
+            const paid = allInvoices.filter(i => i.status === 'paid').length;
+            const revenue = allInvoices
+                .filter(i => i.status === 'paid')
+                .reduce((sum, i) => sum + (parseFloat(i.total_amount) || parseFloat(i.amount) || 0), 0);
+
+            document.getElementById('totalInvoices').textContent = total;
+            document.getElementById('pendingInvoices').textContent = pending;
+            document.getElementById('paidInvoices').textContent = paid;
+            document.getElementById('totalRevenue').textContent = `AED ${revenue.toFixed(2)}`;
+        }
+
+        // Display invoices
+        function displayInvoices(invoices) {
+            const tbody = document.getElementById('invoicesTableBody');
+            
+            if (invoices.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div class="empty-state-icon">🧾</div>
+                            <h3>No invoices found</h3>
+                            <p>Create your first invoice to get started</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = invoices.map(invoice => {
+                const amount = parseFloat(invoice.amount) || 0;
+                const taxRate = parseFloat(invoice.tax_rate) || 0;
+                const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+                const totalAmount = invoice.total_amount || (amount + taxAmount);
+                
+                const statusClass = invoice.status === 'paid' ? 'status-paid' : 
+                                  invoice.status === 'overdue' ? 'status-overdue' : 'status-pending';
+                
+                return `
+                    <tr>
+                        <td><strong>#${invoice.id}</strong></td>
+                        <td>${invoice.customer_name || 'Unknown'}</td>
+                        <td>AED ${totalAmount.toFixed(2)}</td>
+                        <td><span class="status-badge ${statusClass}">${invoice.status || 'pending'}</span></td>
+                        <td>${formatDate(invoice.due_date)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-view" onclick="viewInvoice(${invoice.id})">View</button>
+                                ${invoice.status !== 'paid' ? `<button class="btn-success" onclick="markAsPaid(${invoice.id})">Pay</button>` : ''}
+                                <button class="btn-danger" onclick="deleteInvoice(${invoice.id})">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Setup filters
+        function setupFilters() {
+            const statusFilter = document.getElementById('statusFilter');
+            const customerFilter = document.getElementById('customerFilter');
+            const dateFilter = document.getElementById('dateFilter');
+
+            [statusFilter, customerFilter, dateFilter].forEach(filter => {
+                filter.addEventListener('change', applyFilters);
+            });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const status = document.getElementById('statusFilter').value;
+            const customerId = document.getElementById('customerFilter').value;
+            const date = document.getElementById('dateFilter').value;
+
+            let filtered = allInvoices;
+
+            if (status) {
+                filtered = filtered.filter(i => i.status === status);
+            }
+
+            if (customerId) {
+                filtered = filtered.filter(i => i.customer_id == customerId);
+            }
+
+            if (date) {
+                filtered = filtered.filter(i => i.due_date === date);
+            }
+
+            displayInvoices(filtered);
+        }
+
+        // Helper functions
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString();
+        }
+
+        function getInvoiceStatus(invoice) {
+            if (invoice.status === 'paid') return 'paid';
+            if (invoice.due_date && new Date(invoice.due_date) < new Date()) return 'overdue';
+            return 'pending';
+        }
+
+        // Action functions
+        async function viewInvoice(invoiceId) {
+            const invoice = allInvoices.find(i => i.id === invoiceId);
+            if (!invoice) return;
+
+            const amount = parseFloat(invoice.amount) || 0;
+            const taxRate = parseFloat(invoice.tax_rate) || 0;
+            const taxAmount = invoice.tax_amount || (amount * (taxRate / 100));
+            const totalAmount = invoice.total_amount || (amount + taxAmount);
+            
+            const modalContent = `
+                <div class="invoice-details">
+                    <div class="invoice-header">
+                        <h3>Invoice #${invoice.id}</h3>
+                        <span class="status-badge status-${invoice.status}">${invoice.status.toUpperCase()}</span>
+                    </div>
+                    
+                    <div class="invoice-info">
+                        <div class="info-row">
+                            <div class="info-item">
+                                <div class="info-label">Customer</div>
+                                <div class="info-value">${invoice.customer_name || 'Unknown'}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Invoice Date</div>
+                                <div class="info-value">${formatDate(invoice.created_at)}</div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-item">
+                                <div class="info-label">Due Date</div>
+                                <div class="info-value">${formatDate(invoice.due_date)}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Status</div>
+                                <div class="info-value">${invoice.status ? invoice.status.toUpperCase() : 'PENDING'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-description">
+                        <h4>Description</h4>
+                        <p>${invoice.description || 'No description'}</p>
+                    </div>
+                    
+                    <div class="invoice-amounts">
+                        <div class="amount-row">
+                            <span>Subtotal:</span>
+                            <span>AED ${amount.toFixed(2)}</span>
+                        </div>
+                        <div class="amount-row">
+                            <span>Tax (${taxRate}%):</span>
+                            <span>AED ${taxAmount.toFixed(2)}</span>
+                        </div>
+                        <div class="amount-row total">
+                            <span>Total Amount:</span>
+                            <span>AED ${totalAmount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (window.dashboard) {
+                const modal = dashboard.createModal('Invoice Details', modalContent);
+                modal.show();
+            }
+        }
+
+        async function markAsPaid(invoiceId) {
+            if (!confirm('Mark this invoice as paid?')) return;
+
+            try {
+                await api.markInvoicePaid(invoiceId, { paid_at: new Date().toISOString().split('T')[0] });
+                alert('Invoice marked as paid!');
+                await loadInvoices();
+            } catch (error) {
+                alert('Error marking invoice as paid: ' + error.message);
+            }
+        }
+
+        async function deleteInvoice(invoiceId) {
+            if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) return;
+
+            try {
+                await api.deleteInvoice(invoiceId);
+                alert('Invoice deleted successfully!');
+                await loadInvoices();
+            } catch (error) {
+                alert('Error deleting invoice: ' + error.message);
+            }
+        }
+
+        function openNewInvoiceModal() {
+            window.location.href = '/garage-dashboard.html';
+        }
+    </script>
+</body>
+</html>
