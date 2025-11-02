@@ -3,7 +3,7 @@
  * Provides offline functionality and caching
  */
 
-const CACHE_NAME = 'gms-v1.2.0';
+const CACHE_NAME = 'gms-v1.3.0';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache on install
@@ -77,6 +77,12 @@ self.addEventListener('fetch', event => {
     
     // Skip chrome-extension and other schemes
     if (!event.request.url.startsWith('http')) return;
+    
+    // NEVER cache API requests - always go to network
+    if (event.request.url.includes('/api/')) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
 
     event.respondWith(
         caches.match(event.request)
