@@ -22,15 +22,19 @@ HOST = '0.0.0.0'
 
 class SimpleHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
+        # Add CORS headers before ending
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        super().end_headers()
+        http.server.SimpleHTTPRequestHandler.end_headers(self)
 
     def do_GET(self):
+        # Handle root path
         if self.path == '/':
             self.path = '/index.html'
-        elif self.path == '/api/dashboard/stats':
+        
+        # Handle API routes
+        if self.path == '/api/dashboard/stats':
             stats = db.get_dashboard_stats()
             self.send_json(stats)
             return
@@ -667,6 +671,8 @@ def main():
     print("=" * 50)
     print("GARAGE MANAGEMENT SYSTEM - WORKING!")
     print("=" * 50)
+    print(f"Working directory: {os.getcwd()}")
+    print(f"Files in directory: {os.listdir('.')[:10]}")
     print(f"Starting server on http://{HOST}:{PORT}")
     
     try:
