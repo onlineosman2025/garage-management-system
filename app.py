@@ -22,6 +22,10 @@ CORS(app)
 PORT = int(os.environ.get('PORT', 3000))
 HOST = '0.0.0.0'
 
+# Initialize database and create default admin user
+db.init_database()
+db.create_default_users()
+
 # Debug info
 print("=" * 50)
 print("GARAGE MANAGEMENT SYSTEM - FLASK VERSION!")
@@ -258,13 +262,13 @@ def garage_info():
 def login():
     try:
         data = request.get_json()
-        username = data.get('username')
+        email = data.get('username')  # Frontend sends 'username' but we treat it as email
         password = data.get('password')
         
-        if not username or not password:
-            return jsonify({'error': 'Username and password are required'}), 400
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
         
-        user = db.authenticate_user(username, password)
+        user = db.authenticate_user(email, password)
         if user:
             if 'password_hash' in user:
                 del user['password_hash']
