@@ -384,6 +384,22 @@ def debug_users():
         'users': users
     })
 
+@app.route('/api/settings', methods=['GET'])
+def get_settings():
+    """Get application settings"""
+    return jsonify(db.get_all_settings())
+
+@app.route('/api/settings', methods=['POST'])
+def update_settings():
+    """Update application settings"""
+    try:
+        data = request.get_json()
+        for key, value in data.items():
+            db.update_setting(key, value)
+        return jsonify({'success': True, 'message': 'Settings updated'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 # Dashboard routes
 @app.route('/api/dashboard/revenue', methods=['GET'])
 def dashboard_revenue():
