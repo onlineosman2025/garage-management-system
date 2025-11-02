@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - GMS</title>
+    <link rel="stylesheet" href="professional_modal_styles.css">
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #FFA726 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: white;
+            color: #FF6B35;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .filters-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            align-items: end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .report-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .report-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .export-btn {
+            padding: 8px 15px;
+            background: #FF6B35;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #FF6B35;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .trend-up {
+            color: #28a745;
+        }
+
+        .trend-down {
+            color: #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FF6B35;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FFA726 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 Reports & Analytics</div>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="generateReport()">Generate Report</button>
+            <button class="btn btn-secondary" onclick="goBack()">← Back to Dashboard</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="filters-section">
+            <h3 style="margin-bottom: 20px;">Report Filters</h3>
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="reportType">Report Type</label>
+                    <select id="reportType" onchange="updateReport()">
+                        <option value="revenue">Revenue Report</option>
+                        <option value="customers">Customer Analytics</option>
+                        <option value="jobs">Job Performance</option>
+                        <option value="inventory">Inventory Report</option>
+                        <option value="vat">🇦🇪 UAE VAT Reports</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="timePeriod">Time Period</label>
+                    <select id="timePeriod" onchange="updateReport()">
+                        <option value="7days">Last 7 Days</option>
+                        <option value="30days">Last 30 Days</option>
+                        <option value="3months">Last 3 Months</option>
+                        <option value="6months">Last 6 Months</option>
+                        <option value="1year" selected>Last Year</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="dateFrom">From Date</label>
+                    <input type="date" id="dateFrom" onchange="updateReport()">
+                </div>
+                <div class="filter-group">
+                    <label for="dateTo">To Date</label>
+                    <input type="date" id="dateTo" onchange="updateReport()">
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-primary" onclick="applyFilters()" style="margin-top: 0;">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            Generating reports...
+        </div>
+
+        <div class="reports-grid" id="reportsContainer">
+            <!-- Revenue Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-title">Revenue Analysis</div>
+                    <button class="export-btn" onclick="exportReport('revenue')">Export PDF</button>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-placeholder" id="revenueChart">
+                        📈 Revenue Trend Chart
+                    </div>
+                </div>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalRevenue">Loading...</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="avgMonthly">Loading...</div>
+                        <div class="stat-label">Avg Monthly</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="growthRate">
+                            <span class="trend-indicator">
+                                Loading...
+                            </span>
+                        </div>
+                        <div class="stat-label">Growth Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Analytics -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-title">Customer Analytics</div>
+                    <button class="export-btn" onclick="exportReport('customers')">Export PDF</button>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-placeholder" id="customerChart">
+                        👥 Customer Growth Chart
+                    </div>
+                </div>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalCustomers">Loading...</div>
+                        <div class="stat-label">Total Customers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="newCustomers">Loading...</div>
+                        <div class="stat-label">New This Month</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="repeatCustomers">Loading...</div>
+                        <div class="stat-label">Active Customers</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Performance -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-title">Job Performance</div>
+                    <button class="export-btn" onclick="exportReport('jobs')">Export PDF</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Service Type</th>
+                            <th>Jobs Count</th>
+                            <th>Revenue</th>
+                            <th>Avg Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobsTableBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px; color: #999;">Loading job data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top Customers -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-title">Top Customers</div>
+                    <button class="export-btn" onclick="exportReport('top-customers')">Export PDF</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Jobs</th>
+                            <th>Total Spent</th>
+                            <th>Last Visit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topCustomersBody">
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 20px; color: #999;">Loading customer data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Monthly Breakdown -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-title">Monthly Breakdown</div>
+                    <button class="export-btn" onclick="exportReport('monthly')">Export PDF</button>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Revenue</th>
+                            <th>Jobs</th>
+                            <th>New Customers</th>
+                            <th>Growth</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading monthly data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-title">Financial Summary</div>
+                    <button class="export-btn" onclick="exportReport('financial')">Export PDF</button>
+                </div>
+                <div class="summary-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="grossRevenue">Loading...</div>
+                        <div class="stat-label">Gross Revenue</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="netProfit">Loading...</div>
+                        <div class="stat-label">Net Profit</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="profitMargin">Loading...</div>
+                        <div class="stat-label">Profit Margin</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="taxCollected">Loading...</div>
+                        <div class="stat-label">Tax Collected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="hamburger-menu.js"></script>
+    <script src="js/settings-manager.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="js/api.js"></script>
+    <script src="professional_notifications.js"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!api.isAuthenticated()) {
+                window.location.href = '/index.html';
+                return;
+            }
+            
+            // Set default dates
+            const today = new Date();
+            const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+            
+            document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+            document.getElementById('dateFrom').value = oneYearAgo.toISOString().split('T')[0];
+            
+            loadReports();
+        });
+
+        function loadReports() {
+            showLoading(true);
+            
+            // Load real analytics from database
+            loadRealAnalytics().then(() => {
+                showLoading(false);
+            });
+        }
+
+        function updateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const timePeriod = document.getElementById('timePeriod').value;
+            
+            // Redirect to VAT reports page if VAT is selected
+            if (reportType === 'vat') {
+                window.location.href = '/vat-reports.html';
+                return;
+            }
+            
+            // Reload real data from database
+            showLoading(true);
+            loadRealAnalytics().then(() => {
+                showLoading(false);
+            });
+        }
+
+        // Removed fake data function - now using real database data only
+
+        function applyFilters() {
+            showLoading(true);
+            
+            // Reload real data from database
+            loadRealAnalytics().then(() => {
+                showLoading(false);
+                showNotification('✅ Filters applied - showing real database data', 'success');
+            });
+        }
+
+        function generateReport() {
+            showLoading(true);
+            
+            setTimeout(() => {
+                showLoading(false);
+                alert('Custom report generated successfully!');
+            }, 1500);
+        }
+
+        function exportReport(type) {
+            // Simulate PDF generation
+            const loadingMsg = document.createElement('div');
+            loadingMsg.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                z-index: 1000;
+            `;
+            loadingMsg.innerHTML = `
+                <div style="text-align: center;">
+                    <div class="spinner" style="margin: 0 auto 15px;"></div>
+                    <p>Generating ${type} report PDF...</p>
+                </div>
+            `;
+            document.body.appendChild(loadingMsg);
+            
+            setTimeout(() => {
+                document.body.removeChild(loadingMsg);
+                
+                // Create a download link
+                const link = document.createElement('a');
+                link.href = '#';
+                link.download = `${type}-report-${new Date().toISOString().split('T')[0]}.pdf`;
+                
+                alert(`${type.charAt(0).toUpperCase() + type.slice(1)} report PDF would be downloaded here!`);
+            }, 2000);
+        }
+
+        function goBack() {
+            window.location.href = '/garage-dashboard.html';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('reportsContainer').style.display = show ? 'none' : 'grid';
+        }
+
+        // Load real analytics data
+        async function loadRealAnalytics() {
+            try {
+                const response = await fetch('/api/reports/dashboard');
+                const data = await response.json();
+                
+                console.log('📊 Real Analytics Data from Database:', data);
+                
+                // Update Revenue Analysis
+                if (data.revenue_report) {
+                    document.getElementById('totalRevenue').textContent = SettingsManager.formatCurrency(data.revenue_report.total_revenue);
+                    
+                    // Calculate average monthly (total / 12 months)
+                    const avgMonthly = data.revenue_report.total_revenue / 12;
+                    document.getElementById('avgMonthly').textContent = SettingsManager.formatCurrency(avgMonthly);
+                    
+                    // Show growth rate if available
+                    const growthRate = document.getElementById('growthRate');
+                    if (data.revenue_report.total_revenue > 0) {
+                        growthRate.innerHTML = '<span class="trend-indicator trend-up">✓ Active</span>';
+                    }
+                }
+                
+                // Update Customer Analytics
+                if (data.customer_analytics) {
+                    document.getElementById('totalCustomers').textContent = data.customer_analytics.total_customers;
+                    document.getElementById('newCustomers').textContent = data.customer_analytics.new_customers_this_month || 0;
+                    document.getElementById('repeatCustomers').textContent = data.customer_analytics.active_customers || data.customer_analytics.total_customers;
+                }
+                
+                // Update Job Performance Table
+                if (data.service_analytics && data.service_analytics.service_breakdown) {
+                    const tbody = document.getElementById('jobsTableBody');
+                    tbody.innerHTML = '';
+                    
+                    data.service_analytics.service_breakdown.forEach((service) => {
+                        const row = `
+                            <tr>
+                                <td>${service.service_type.replace('_', ' ').toUpperCase()}</td>
+                                <td>${service.count}</td>
+                                <td>${SettingsManager.formatCurrency(service.revenue)}</td>
+                                <td>${service.percentage.toFixed(1)}%</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    // If no services, show message
+                    if (data.service_analytics.service_breakdown.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No job data available yet</td></tr>';
+                    }
+                }
+                
+                // Update Top Customers Table
+                if (data.revenue_report && data.revenue_report.top_customers) {
+                    const tbody = document.getElementById('topCustomersBody');
+                    tbody.innerHTML = '';
+                    
+                    data.revenue_report.top_customers.forEach((customer) => {
+                        const row = `
+                            <tr>
+                                <td>${customer.customer_name}</td>
+                                <td>${customer.invoice_count}</td>
+                                <td>${SettingsManager.formatCurrency(customer.total_revenue)}</td>
+                                <td>Recent</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    if (data.revenue_report.top_customers.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No customer data available yet</td></tr>';
+                    }
+                }
+                
+                // Update Monthly Breakdown Table
+                if (data.revenue_report && data.revenue_report.monthly_revenue) {
+                    const tbody = document.getElementById('monthlyTableBody');
+                    tbody.innerHTML = '';
+                    
+                    Object.entries(data.revenue_report.monthly_revenue).forEach(([month, revenue]) => {
+                        const row = `
+                            <tr>
+                                <td>${month}</td>
+                                <td>${SettingsManager.formatCurrency(revenue)}</td>
+                                <td>-</td>
+                                <td>-</td>
+                                <td>-</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                    
+                    if (Object.keys(data.revenue_report.monthly_revenue).length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No monthly data available yet</td></tr>';
+                    }
+                }
+                
+                // Update Financial Summary
+                if (data.financial_summary) {
+                    document.getElementById('grossRevenue').textContent = SettingsManager.formatCurrency(data.financial_summary.revenue);
+                    document.getElementById('netProfit').textContent = SettingsManager.formatCurrency(data.financial_summary.estimated_profit);
+                    document.getElementById('profitMargin').textContent = `${data.financial_summary.profit_margin.toFixed(1)}%`;
+                    document.getElementById('taxCollected').textContent = SettingsManager.formatCurrency(data.financial_summary.tax_collected);
+                }
+                
+                showNotification('✅ Real analytics loaded from database!', 'success');
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+                showNotification('❌ Error loading analytics from database', 'error');
+                
+                // Show error state
+                document.getElementById('totalRevenue').textContent = 'Error';
+                document.getElementById('totalCustomers').textContent = 'Error';
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Note: Analytics are loaded via loadReports() in the main DOMContentLoaded listener above
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check Settings</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        pre { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Settings Checker</h1>
+    <button onclick="checkSettings()">Check Current Settings</button>
+    <button onclick="fixSettings()">Fix to AED</button>
+    <button onclick="clearAll()">Clear All Settings</button>
+    <div id="output"></div>
+
+    <script src="js/settings-manager.js"></script>
+    <script>
+        function checkSettings() {
+            const output = document.getElementById('output');
+            
+            // Check localStorage
+            const raw = localStorage.getItem('garage_settings');
+            
+            output.innerHTML = `
+                <h2>Raw localStorage:</h2>
+                <pre>${raw || 'No settings found'}</pre>
+                
+                <h2>Parsed Settings:</h2>
+                <pre>${raw ? JSON.stringify(JSON.parse(raw), null, 2) : 'N/A'}</pre>
+                
+                <h2>SettingsManager Values:</h2>
+                <pre>
+Currency: ${SettingsManager.getCurrency()}
+Currency Symbol: ${SettingsManager.getCurrencySymbol()}
+Tax Rate: ${SettingsManager.getTaxRate()}%
+Working Hours: ${SettingsManager.getWorkingHours()}
+                </pre>
+                
+                <h2>Test Format:</h2>
+                <pre>
+formatCurrency(80): ${SettingsManager.formatCurrency(80)}
+                </pre>
+            `;
+        }
+
+        function fixSettings() {
+            const settings = {
+                garage: {
+                    name: 'AutoFix Pro Garage',
+                    email: 'info@autofixpro.com',
+                    phone: '+971 4 123 4567',
+                    website: 'https://autofixpro.com',
+                    address: 'Al Quoz Industrial Area 3, Dubai, UAE',
+                    description: 'Professional automotive repair and maintenance services'
+                },
+                business: {
+                    currency: 'AED',
+                    timezone: 'Asia/Dubai',
+                    language: 'en',
+                    dateFormat: 'DD/MM/YYYY',
+                    workingHours: 'Sunday - Thursday: 8:00 AM - 6:00 PM',
+                    taxRate: 5
+                },
+                notifications: {
+                    emailNotifications: true,
+                    smsNotifications: false,
+                    jobAlerts: true,
+                    paymentReminders: true,
+                    stockAlerts: true,
+                    dailyReports: false
+                },
+                security: {
+                    twoFactorAuth: false,
+                    loginAlerts: true
+                }
+            };
+
+            localStorage.setItem('garage_settings', JSON.stringify(settings));
+            SettingsManager.saveAll(settings);
+            
+            alert('Settings fixed to AED! Refresh the dashboard to see changes.');
+            checkSettings();
+        }
+
+        function clearAll() {
+            localStorage.removeItem('garage_settings');
+            alert('Settings cleared!');
+            checkSettings();
+        }
+
+        // Auto-check on load
+        window.onload = checkSettings;
+    </script>
+</body>
+</html>

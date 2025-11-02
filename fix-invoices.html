@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Invoices - GMS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .problem {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        button.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+        }
+        .invoice-list {
+            margin: 15px 0;
+        }
+        .invoice-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .invoice-item.orphaned {
+            border-color: #dc3545;
+            background: #fff5f5;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Fix Invoice Issues</h1>
+        <p class="subtitle">Automatically fix invoices with missing or invalid customer references</p>
+
+        <div id="status" class="section">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Checking invoices...</p>
+            </div>
+        </div>
+
+        <div id="stats" style="display: none;">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalInvoices">0</div>
+                    <div class="stat-label">Total Invoices</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="validInvoices">0</div>
+                    <div class="stat-label">Valid Invoices</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="orphanedInvoices">0</div>
+                    <div class="stat-label">Orphaned Invoices</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="problems" style="display: none;"></div>
+
+        <div id="actions" style="display: none;">
+            <h3>Choose Fix Method:</h3>
+            <button onclick="deleteOrphaned()">🗑️ Delete Orphaned Invoices</button>
+            <button onclick="window.location.href='/invoices.html'" class="secondary">📋 View Invoices Page</button>
+            <button onclick="checkAgain()" class="secondary">🔄 Check Again</button>
+        </div>
+
+        <div id="results" style="display: none;"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let orphanedInvoiceIds = [];
+
+        async function checkInvoices() {
+            try {
+                const response = await fetch('http://localhost:3000/api/debug/invoices');
+                const data = await response.json();
+
+                const total = data.invoices.length;
+                const orphaned = data.invoices.filter(inv => {
+                    return !data.customers.find(c => c.id === inv.customer_id);
+                });
+                const valid = total - orphaned.length;
+
+                orphanedInvoiceIds = orphaned.map(inv => inv.id);
+
+                // Update stats
+                document.getElementById('totalInvoices').textContent = total;
+                document.getElementById('validInvoices').textContent = valid;
+                document.getElementById('orphanedInvoices').textContent = orphaned.length;
+                document.getElementById('stats').style.display = 'block';
+
+                if (orphaned.length === 0) {
+                    document.getElementById('status').className = 'section success';
+                    document.getElementById('status').innerHTML = `
+                        <h2>✅ All Good!</h2>
+                        <p>All ${total} invoices have valid customer references.</p>
+                        <p>No fixes needed.</p>
+                    `;
+                    document.getElementById('actions').style.display = 'none';
+                } else {
+                    document.getElementById('status').className = 'section problem';
+                    document.getElementById('status').innerHTML = `
+                        <h2>⚠️ Issues Found</h2>
+                        <p>Found ${orphaned.length} invoice(s) with invalid customer references.</p>
+                        <p>These invoices show as "Unknown" because their customer_id doesn't match any existing customer.</p>
+                    `;
+
+                    // Show problem invoices
+                    let problemsHtml = '<div class="section error"><h3>Orphaned Invoices:</h3><div class="invoice-list">';
+                    orphaned.forEach(inv => {
+                        problemsHtml += `
+                            <div class="invoice-item orphaned">
+                                <div>
+                                    <strong>Invoice #${inv.id}</strong><br>
+                                    <small>Customer ID: ${inv.customer_id} (not found) | Amount: AED ${inv.amount} | Status: ${inv.status}</small>
+                                </div>
+                                <span style="color: #dc3545; font-weight: bold;">❌ Invalid</span>
+                            </div>
+                        `;
+                    });
+                    problemsHtml += '</div></div>';
+                    document.getElementById('problems').innerHTML = problemsHtml;
+                    document.getElementById('problems').style.display = 'block';
+
+                    document.getElementById('actions').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('status').className = 'section error';
+                document.getElementById('status').innerHTML = `
+                    <h2>❌ Error</h2>
+                    <p>Failed to check invoices: ${error.message}</p>
+                    <p>Make sure the server is running on port 3000.</p>
+                `;
+            }
+        }
+
+        async function deleteOrphaned() {
+            if (orphanedInvoiceIds.length === 0) {
+                alert('No orphaned invoices to delete.');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete ${orphanedInvoiceIds.length} orphaned invoice(s)? This cannot be undone.`)) {
+                return;
+            }
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').className = 'section';
+            document.getElementById('results').innerHTML = '<div class="loading"><div class="spinner"></div><p>Deleting invoices...</p></div>';
+
+            let deleted = 0;
+            let failed = 0;
+
+            for (const id of orphanedInvoiceIds) {
+                try {
+                    await api.deleteInvoice(id);
+                    deleted++;
+                } catch (error) {
+                    console.error(`Failed to delete invoice ${id}:`, error);
+                    failed++;
+                }
+            }
+
+            if (failed === 0) {
+                document.getElementById('results').className = 'section success';
+                document.getElementById('results').innerHTML = `
+                    <h2>✅ Success!</h2>
+                    <p>Deleted ${deleted} orphaned invoice(s).</p>
+                    <p>All invoices now have valid customer references.</p>
+                    <button onclick="window.location.href='/invoices.html'">View Invoices</button>
+                    <button onclick="checkAgain()" class="secondary">Check Again</button>
+                `;
+            } else {
+                document.getElementById('results').className = 'section error';
+                document.getElementById('results').innerHTML = `
+                    <h2>⚠️ Partial Success</h2>
+                    <p>Deleted: ${deleted} invoice(s)</p>
+                    <p>Failed: ${failed} invoice(s)</p>
+                    <button onclick="checkAgain()">Check Again</button>
+                `;
+            }
+
+            document.getElementById('actions').style.display = 'none';
+            document.getElementById('problems').style.display = 'none';
+        }
+
+        function checkAgain() {
+            document.getElementById('status').className = 'section';
+            document.getElementById('status').innerHTML = '<div class="loading"><div class="spinner"></div><p>Checking invoices...</p></div>';
+            document.getElementById('stats').style.display = 'none';
+            document.getElementById('problems').style.display = 'none';
+            document.getElementById('actions').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            setTimeout(checkInvoices, 500);
+        }
+
+        // Auto-run on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkInvoices();
+        });
+    </script>
+</body>
+</html>

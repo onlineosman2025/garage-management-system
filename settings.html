@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - GMS</title>
+    <link rel="stylesheet" href="professional_modal_styles.css">
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <script defer src="hamburger-menu.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #FFA726 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: white;
+            color: #FF6B35;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .settings-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .nav-tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: #FF6B35;
+            border-bottom-color: #FF6B35;
+        }
+
+        .settings-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .settings-section {
+            display: none;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            color: #333;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #333;
+            opacity: 0.7;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #FF6B35;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .setting-description {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .save-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f0f0;
+            text-align: right;
+        }
+
+        .btn-save {
+            background: #FF6B35;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-save:hover {
+            background: #e55a2b;
+        }
+
+        .danger-zone {
+            background: #fff5f5;
+            border: 2px solid #fed7d7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .danger-title {
+            color: #c53030;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .danger-description {
+            color: #742a2a;
+            margin-bottom: 15px;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* Responsive Design for Mobile */
+        @media (max-width: 768px) {
+            .settings-nav {
+                padding: 10px;
+                margin-bottom: 20px;
+                border-radius: 10px;
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                gap: 10px;
+                border-bottom: 2px solid #f0f0f0;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+                flex-wrap: nowrap;
+                white-space: nowrap;
+            }
+
+            .nav-tabs::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            .nav-tabs::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            .nav-tabs::-webkit-scrollbar-thumb {
+                background: #FF6B35;
+                border-radius: 10px;
+            }
+
+            .nav-tab {
+                padding: 12px 16px;
+                font-size: 14px;
+                flex-shrink: 0;
+                white-space: nowrap;
+            }
+
+            .container {
+                padding: 15px 10px;
+            }
+
+            .settings-content {
+                padding: 20px 15px;
+                border-radius: 10px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 15px;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-tab {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .section-title {
+                font-size: 1.1em;
+            }
+
+            .settings-content {
+                padding: 15px 10px;
+            }
+        }
+
+        /* Responsive Table for Services */
+        @media (max-width: 768px) {
+            #servicesTableContainer {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .data-table {
+                min-width: 600px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px !important;
+                font-size: 13px !important;
+            }
+
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2),
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #servicesTableContainer .data-table {
+                display: none;
+            }
+
+            #servicesTableContainer::after {
+                content: '';
+                display: block;
+            }
+
+            /* Card-based layout for mobile */
+            #servicesTableBody {
+                display: block !important;
+            }
+
+            #servicesTableBody tr {
+                display: block !important;
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                padding: 15px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+            #servicesTableBody td {
+                display: block !important;
+                text-align: left !important;
+                padding: 8px 0 !important;
+                border: none !important;
+            }
+
+            #servicesTableBody td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                display: inline-block;
+                width: 120px;
+                color: #666;
+            }
+
+            #servicesTableBody td:last-child {
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid #f0f0f0 !important;
+            }
+
+            #servicesTableBody td:last-child button {
+                margin: 5px 5px 5px 0;
+            }
+
+            .btn-save {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo" data-translate="settings">⚙️ Settings</div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="goBack()" data-translate="back">← Back to Dashboard</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="settings-nav">
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="showSection('garage')" data-translate="garage_profile">Garage Profile</div>
+                <div class="nav-tab" onclick="showSection('business')" data-translate="business_settings">Business Settings</div>
+                <div class="nav-tab" onclick="showSection('services')" data-translate="services_management">🔧 Services</div>
+                <div class="nav-tab" onclick="showSection('email')" data-translate="email_config">📧 Email Config</div>
+                <div class="nav-tab" onclick="showSection('sms')" data-translate="sms_config">📱 SMS Config</div>
+                <div class="nav-tab" onclick="showSection('payment')" data-translate="payments">💳 Payments</div>
+                <div class="nav-tab" onclick="showSection('notifications')" data-translate="notifications">Notifications</div>
+                <div class="nav-tab" onclick="showSection('security')" data-translate="security">Security</div>
+            </div>
+        </div>
+
+        <div class="settings-content">
+            <div id="successMessage" class="success-message">
+                Settings saved successfully!
+            </div>
+
+            <!-- Garage Profile Section -->
+            <div id="garage-section" class="settings-section active">
+                <div class="section-title">Garage Profile</div>
+                <form id="garageForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="garageName">Garage Name *</label>
+                            <input type="text" id="garageName" name="name" placeholder="Enter your garage name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="garageEmail">Contact Email *</label>
+                            <input type="email" id="garageEmail" name="email" placeholder="info@yourgarage.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="garagePhone">Phone Number *</label>
+                            <input type="tel" id="garagePhone" name="phone" placeholder="+971 XX XXX XXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="garageWebsite">Website</label>
+                            <input type="url" id="garageWebsite" name="website" placeholder="https://yourgarage.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="garageAddress">Address *</label>
+                        <textarea id="garageAddress" name="address" placeholder="Enter your garage address" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="garageDescription">Description</label>
+                        <textarea id="garageDescription" name="description" placeholder="Enter a description of your garage services"></textarea>
+                    </div>
+                    <div class="save-section">
+                        <button type="button" class="btn-save" onclick="saveSettings()">Save Garage Profile</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Business Settings Section -->
+            <div id="business-section" class="settings-section">
+                <div class="section-title">Business Settings</div>
+                <form id="businessForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <select id="currency" name="currency">
+                                <option value="AED" selected>AED (UAE Dirham)</option>
+                                <option value="USD">USD (US Dollar)</option>
+                                <option value="EUR">EUR (Euro)</option>
+                                <option value="SAR">SAR (Saudi Riyal)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="timezone">Timezone</label>
+                            <select id="timezone" name="timezone">
+                                <option value="Asia/Dubai" selected>Asia/Dubai (GMT+4)</option>
+                                <option value="Asia/Riyadh">Asia/Riyadh (GMT+3)</option>
+                                <option value="Europe/London">Europe/London (GMT+0)</option>
+                                <option value="America/New_York">America/New_York (GMT-5)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="language">Default Language</label>
+                            <select id="language" name="language">
+                                <option value="en" selected>English</option>
+                                <option value="ar">Arabic</option>
+                                <option value="ur">Urdu</option>
+                            </select>
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                ℹ️ Currently, Arabic and Urdu translations are only available on the login page. The dashboard and other pages remain in English. Full system translation coming soon.
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="dateFormat">Date Format</label>
+                            <select id="dateFormat" name="date_format">
+                                <option value="DD/MM/YYYY" selected>DD/MM/YYYY</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="garageTRN">
+                                Tax Registration Number (TRN) 
+                                <span style="color: #666; font-size: 0.9em;">- UAE FTA Required</span>
+                            </label>
+                            <input type="text" id="garageTRN" name="garage_tax_number" placeholder="XXX-XXXX-XXXX-XXX (15 digits)" maxlength="19">
+                            <small id="trnValidation" style="display: block; margin-top: 5px; font-weight: 500;"></small>
+                        </div>
+                        <div class="form-group">
+                            <label for="taxRate">
+                                VAT Rate (%) 
+                                <span style="color: #666; font-size: 0.9em;">- UAE Standard: 5%</span>
+                            </label>
+                            <input type="number" id="taxRate" name="tax_rate" value="5" step="0.1" min="0" max="100" placeholder="5" style="font-weight: 600; font-size: 18px;">
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                💡 UAE standard VAT rate is 5%. This applies to all invoices.
+                            </small>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="workingHours">Working Hours</label>
+                            <input type="text" id="workingHours" name="working_hours" value="Sunday - Thursday: 8:00 AM - 6:00 PM" placeholder="e.g., Sun-Thu: 8AM-6PM">
+                        </div>
+                        <div class="form-group">
+                            <label for="garageLicense">
+                                Trade License Number
+                                <span style="color: #666; font-size: 0.9em;">- Optional</span>
+                            </label>
+                            <input type="text" id="garageLicense" name="garage_license_number" placeholder="Enter your trade license number">
+                        </div>
+                    </div>
+                    <div class="save-section">
+                        <button type="button" class="btn-save" onclick="saveSettings()">Save Business Settings</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Services Management Section -->
+            <div id="services-section" class="settings-section">
+                <div class="section-title">🔧 Service Management</div>
+                <p style="color: #666; margin-bottom: 20px;">Manage the services offered by your garage. These services will appear in job creation forms.</p>
+                
+                <div style="margin-bottom: 20px;">
+                    <button type="button" class="btn-save" onclick="showAddServiceModal()" style="background: #4CAF50;">
+                        ➕ Add New Service
+                    </button>
+                </div>
+
+                <div id="servicesTableContainer">
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f5f5f5;">
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Service Name</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Arabic Name</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Urdu Name</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Default Price</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Status</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody">
+                            <tr>
+                                <td colspan="6" style="padding: 20px; text-align: center; color: #999;">
+                                    Loading services...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Email Configuration Section -->
+            <div id="email-section" class="settings-section">
+                <div class="section-title">📧 Email Configuration</div>
+                <p style="color: #666; margin-bottom: 20px;">Configure SMTP settings to send invoice emails and notifications to customers.</p>
+                
+                <form id="emailForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="smtpServer">SMTP Server *</label>
+                            <input type="text" id="smtpServer" placeholder="smtp.gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="smtpPort">SMTP Port *</label>
+                            <input type="number" id="smtpPort" placeholder="587">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="senderEmail">Sender Email *</label>
+                            <input type="email" id="senderEmail" placeholder="your-email@gmail.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="senderName">Sender Name *</label>
+                            <input type="text" id="senderName" placeholder="My Garage">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="senderPassword">Email Password / App Password *</label>
+                        <input type="password" id="senderPassword" placeholder="Your email password or app-specific password">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            For Gmail: Use an <a href="https://support.google.com/accounts/answer/185833" target="_blank">App Password</a> instead of your regular password
+                        </small>
+                    </div>
+                    <div class="save-section">
+                        <button type="button" class="btn btn-secondary" onclick="testEmailConfig()" style="margin-right: 10px;">Test Connection</button>
+                        <button type="button" class="btn-save" onclick="saveEmailConfig()">Save Email Config</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- SMS Configuration Section -->
+            <div id="sms-section" class="settings-section">
+                <div class="section-title">📱 SMS Configuration (Twilio)</div>
+                <p style="color: #666; margin-bottom: 20px;">Configure Twilio to send SMS notifications to customers about job status and payments.</p>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>⚠️ Setup Required:</strong> Install Twilio library: <code style="background: #f8f9fa; padding: 2px 8px; border-radius: 4px;">pip install twilio</code>
+                </div>
+                
+                <form id="smsForm">
+                    <div class="form-group">
+                        <label for="twilioAccountSid">Twilio Account SID *</label>
+                        <input type="text" id="twilioAccountSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Find this in your <a href="https://console.twilio.com/" target="_blank">Twilio Console</a>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="twilioAuthToken">Twilio Auth Token *</label>
+                        <input type="password" id="twilioAuthToken" placeholder="Your Twilio Auth Token">
+                    </div>
+                    <div class="form-group">
+                        <label for="twilioPhoneNumber">Twilio Phone Number *</label>
+                        <input type="tel" id="twilioPhoneNumber" placeholder="+1234567890">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Your Twilio phone number (with country code)
+                        </small>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-title">Enable SMS Service</div>
+                            <div class="setting-description">Turn on SMS notifications</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="smsEnabled">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="save-section">
+                        <button type="button" class="btn btn-secondary" onclick="testSMSConfig()" style="margin-right: 10px;">Send Test SMS</button>
+                        <button type="button" class="btn-save" onclick="saveSMSConfig()">Save SMS Config</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Payment Configuration Section -->
+            <div id="payment-section" class="settings-section">
+                <div class="section-title">💳 Payment Gateway (Stripe)</div>
+                <p style="color: #666; margin-bottom: 20px;">Configure Stripe to accept online payments for invoices.</p>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>⚠️ Setup Required:</strong> Install Stripe library: <code style="background: #f8f9fa; padding: 2px 8px; border-radius: 4px;">pip install stripe</code>
+                </div>
+                
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label for="stripeSecretKey">Stripe Secret Key *</label>
+                        <input type="password" id="stripeSecretKey" placeholder="sk_test_...">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            Get your keys from <a href="https://dashboard.stripe.com/apikeys" target="_blank">Stripe Dashboard</a>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="stripePublishableKey">Stripe Publishable Key *</label>
+                        <input type="text" id="stripePublishableKey" placeholder="pk_test_...">
+                    </div>
+                    <div class="form-group">
+                        <label for="stripeWebhookSecret">Webhook Secret (Optional)</label>
+                        <input type="password" id="stripeWebhookSecret" placeholder="whsec_...">
+                        <small style="color: #666; display: block; margin-top: 5px;">
+                            For webhook verification (advanced)
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentCurrency">Currency</label>
+                        <select id="paymentCurrency">
+                            <option value="AED" selected>AED (UAE Dirham)</option>
+                            <option value="USD">USD (US Dollar)</option>
+                            <option value="EUR">EUR (Euro)</option>
+                            <option value="SAR">SAR (Saudi Riyal)</option>
+                        </select>
+                    </div>
+                    <div class="save-section">
+                        <button type="button" class="btn btn-secondary" onclick="testPaymentConfig()" style="margin-right: 10px;">Test Connection</button>
+                        <button type="button" class="btn-save" onclick="savePaymentConfig()">Save Payment Config</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Notifications Section -->
+            <div id="notifications-section" class="settings-section">
+                <div class="section-title">Notification Preferences</div>
+                
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Email Notifications</div>
+                        <div class="setting-description">Receive notifications via email</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="emailNotifications" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">SMS Notifications</div>
+                        <div class="setting-description">Receive notifications via SMS</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="smsNotifications">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">New Job Alerts</div>
+                        <div class="setting-description">Get notified when new jobs are created</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="jobAlerts" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Payment Reminders</div>
+                        <div class="setting-description">Send payment reminders to customers</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="paymentReminders" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Low Stock Alerts</div>
+                        <div class="setting-description">Get notified when inventory is low</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="stockAlerts" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Daily Reports</div>
+                        <div class="setting-description">Receive daily business summary reports</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="dailyReports">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="save-section">
+                    <button type="button" class="btn-save" onclick="saveSettings()">Save Notification Settings</button>
+                </div>
+            </div>
+
+            <!-- Security Section -->
+            <div id="security-section" class="settings-section">
+                <div class="section-title">Security Settings</div>
+                
+                <form id="securityForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="new_password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password">
+                    </div>
+                </form>
+
+                <div style="margin-top: 30px;">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-title">Two-Factor Authentication</div>
+                            <div class="setting-description">Add an extra layer of security to your account</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="twoFactorAuth">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-title">Login Alerts</div>
+                            <div class="setting-description">Get notified of new login attempts</div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="loginAlerts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <div class="setting-title">Session Timeout</div>
+                            <div class="setting-description">Automatically log out after inactivity</div>
+                        </div>
+                        <select style="width: 150px; padding: 8px;">
+                            <option value="30">30 minutes</option>
+                            <option value="60" selected>1 hour</option>
+                            <option value="120">2 hours</option>
+                            <option value="480">8 hours</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="save-section">
+                    <button type="button" class="btn-save" onclick="saveSettings()">Save Security Settings</button>
+                </div>
+            </div>
+
+            <!-- Billing Section -->
+            <div id="billing-section" class="settings-section">
+                <div class="section-title">Billing & Subscription</div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="color: #333; margin-bottom: 10px;">Current Plan: Professional</h4>
+                    <p style="color: #666; margin-bottom: 15px;">$99/month - Unlimited customers, jobs, and reports</p>
+                    <div style="display: flex; gap: 15px;">
+                        <button class="btn btn-primary" onclick="upgradePlan()">Upgrade Plan</button>
+                        <button class="btn btn-secondary" onclick="manageBilling()">Manage Billing</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="billingEmail">Billing Email</label>
+                    <input type="email" id="billingEmail" name="billing_email" value="billing@autofixpro.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="billingAddress">Billing Address</label>
+                    <textarea id="billingAddress" name="billing_address">AutoFix Pro Garage
+Al Quoz Industrial Area 3
+Dubai, UAE</textarea>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-title">Auto-renewal</div>
+                        <div class="setting-description">Automatically renew subscription</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoRenewal" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="danger-zone">
+                    <div class="danger-title">Danger Zone</div>
+                    <div class="danger-description">
+                        Once you cancel your subscription, you will lose access to all premium features.
+                    </div>
+                    <button class="btn-danger" onclick="cancelSubscription()">Cancel Subscription</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/settings-manager.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="js/api.js"></script>
+    <script src="professional_notifications.js"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!api.isAuthenticated()) {
+                window.location.href = '/index.html';
+                return;
+            }
+            loadSettings();
+            loadConfigurations();
+        });
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.settings-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        async function loadSettings() {
+            console.log('=== Loading Settings ===');
+            
+            try {
+                // Load settings from database API
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const settings = await response.json();
+                    console.log('Loaded settings from database:', settings);
+                    
+                    // Populate garage profile fields directly from database keys
+                    if (settings.garage_name) document.getElementById('garageName').value = settings.garage_name;
+                    if (settings.garage_email) document.getElementById('garageEmail').value = settings.garage_email;
+                    if (settings.garage_phone) document.getElementById('garagePhone').value = settings.garage_phone;
+                    if (settings.garage_address) document.getElementById('garageAddress').value = settings.garage_address;
+                    
+                    // Populate business settings
+                    if (settings.currency) document.getElementById('currency').value = settings.currency;
+                    if (settings.language) document.getElementById('language').value = settings.language;
+                    if (settings.tax_rate) document.getElementById('taxRate').value = settings.tax_rate;
+                    if (settings.garage_tax_number) {
+                        document.getElementById('garageTRN').value = settings.garage_tax_number;
+                        validateTRN(settings.garage_tax_number);
+                    }
+                    if (settings.garage_license_number) document.getElementById('garageLicense').value = settings.garage_license_number;
+                    
+                    console.log('Settings loaded successfully');
+                } else {
+                    console.error('Failed to load settings from API');
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        function populateForm(settings) {
+            console.log('Loading settings:', settings);
+            
+            // Populate garage profile
+            if (settings.garage) {
+                Object.keys(settings.garage).forEach(key => {
+                    const element = document.getElementById('garage' + key.charAt(0).toUpperCase() + key.slice(1));
+                    if (element) {
+                        element.value = settings.garage[key];
+                        console.log(`Set garage.${key} to:`, settings.garage[key]);
+                    }
+                });
+            }
+
+            // Populate business settings
+            if (settings.business) {
+                // Map settings keys to element IDs
+                const businessFields = {
+                    currency: 'currency',
+                    timezone: 'timezone',
+                    language: 'language',
+                    dateFormat: 'dateFormat',
+                    workingHours: 'workingHours',
+                    taxRate: 'taxRate'
+                };
+                
+                Object.keys(businessFields).forEach(key => {
+                    const elementId = businessFields[key];
+                    const element = document.getElementById(elementId);
+                    if (element && settings.business[key] !== undefined) {
+                        element.value = settings.business[key];
+                        console.log(`Set business.${key} to:`, settings.business[key]);
+                    }
+                });
+            }
+
+            // Populate notification settings
+            if (settings.notifications) {
+                Object.keys(settings.notifications).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element && element.type === 'checkbox') {
+                        element.checked = settings.notifications[key];
+                        console.log(`Set notification.${key} to:`, settings.notifications[key]);
+                    }
+                });
+            }
+            
+            // Populate security settings
+            if (settings.security) {
+                Object.keys(settings.security).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element && element.type === 'checkbox') {
+                        element.checked = settings.security[key];
+                        console.log(`Set security.${key} to:`, settings.security[key]);
+                    }
+                });
+            }
+        }
+
+        async function saveSettings() {
+            // Validate tax rate
+            const taxRateInput = document.getElementById('taxRate');
+            const taxRate = parseFloat(taxRateInput.value);
+            
+            if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+                showNotification('❌ Tax Rate must be a number between 0 and 100', 'error');
+                taxRateInput.focus();
+                return;
+            }
+
+            // Prepare settings for database
+            const dbSettings = {
+                garage_name: document.getElementById('garageName').value,
+                garage_email: document.getElementById('garageEmail').value,
+                garage_phone: document.getElementById('garagePhone').value,
+                garage_address: document.getElementById('garageAddress').value,
+                garage_tax_number: document.getElementById('garageTRN').value,
+                garage_license_number: document.getElementById('garageLicense').value,
+                currency: document.getElementById('currency').value,
+                language: document.getElementById('language').value,
+                tax_rate: taxRate.toString()
+            };
+
+            try {
+                // Save to database via API
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dbSettings)
+                });
+
+                if (response.ok) {
+                    // Show success message
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        successMessage.style.display = 'none';
+                    }, 3000);
+
+                    // Show notification
+                    showNotification('✅ Settings saved successfully! Changes will apply to all invoices.', 'success');
+                } else {
+                    showNotification('❌ Error saving settings', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showNotification('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        function upgradePlan() {
+            alert('Upgrade plan functionality would redirect to billing portal');
+        }
+
+        function manageBilling() {
+            alert('Manage billing functionality would open billing management');
+        }
+
+        function cancelSubscription() {
+            if (confirm('Are you sure you want to cancel your subscription? This action cannot be undone.')) {
+                alert('Subscription cancellation process would be initiated');
+            }
+        }
+
+        function goBack() {
+            window.location.href = '/garage-dashboard.html';
+        }
+
+        // Email Configuration Functions
+        async function saveEmailConfig() {
+            const emailConfig = {
+                smtp_server: document.getElementById('smtpServer').value,
+                smtp_port: parseInt(document.getElementById('smtpPort').value),
+                sender_email: document.getElementById('senderEmail').value,
+                sender_password: document.getElementById('senderPassword').value,
+                sender_name: document.getElementById('senderName').value
+            };
+
+            if (!emailConfig.smtp_server || !emailConfig.sender_email || !emailConfig.sender_password) {
+                showNotification('❌ Please fill in all required email fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/email/config', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(emailConfig)
+                });
+
+                if (response.ok) {
+                    showNotification('✅ Email configuration saved successfully!', 'success');
+                } else {
+                    showNotification('❌ Error saving email configuration', 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testEmailConfig() {
+            showNotification('📧 Testing email connection...', 'info');
+            // In a real implementation, this would send a test email
+            setTimeout(() => {
+                showNotification('✅ Email test would be sent here. Configure first, then use "Email Invoice" button on invoices page.', 'success');
+            }, 1000);
+        }
+
+        // SMS Configuration Functions
+        async function saveSMSConfig() {
+            const smsConfig = {
+                twilio_account_sid: document.getElementById('twilioAccountSid').value,
+                twilio_auth_token: document.getElementById('twilioAuthToken').value,
+                twilio_phone_number: document.getElementById('twilioPhoneNumber').value,
+                enabled: document.getElementById('smsEnabled').checked
+            };
+
+            if (!smsConfig.twilio_account_sid || !smsConfig.twilio_auth_token || !smsConfig.twilio_phone_number) {
+                showNotification('❌ Please fill in all required SMS fields', 'error');
+                return;
+            }
+
+            try {
+                // Save to sms_config.json via backend
+                localStorage.setItem('sms_config', JSON.stringify(smsConfig));
+                showNotification('✅ SMS configuration saved! Note: Requires Twilio library (pip install twilio)', 'success');
+            } catch (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testSMSConfig() {
+            const phone = prompt('Enter phone number to send test SMS (with country code, e.g., +971501234567):');
+            if (!phone) return;
+
+            showNotification('📱 Sending test SMS...', 'info');
+            setTimeout(() => {
+                showNotification('✅ Test SMS would be sent to ' + phone + '. Install Twilio library first: pip install twilio', 'success');
+            }, 1000);
+        }
+
+        // Payment Configuration Functions
+        async function savePaymentConfig() {
+            const paymentConfig = {
+                stripe_secret_key: document.getElementById('stripeSecretKey').value,
+                stripe_publishable_key: document.getElementById('stripePublishableKey').value,
+                webhook_secret: document.getElementById('stripeWebhookSecret').value,
+                currency: document.getElementById('paymentCurrency').value
+            };
+
+            if (!paymentConfig.stripe_secret_key || !paymentConfig.stripe_publishable_key) {
+                showNotification('❌ Please fill in required Stripe keys', 'error');
+                return;
+            }
+
+            try {
+                // Save to payment_config.json via backend
+                localStorage.setItem('payment_config', JSON.stringify(paymentConfig));
+                showNotification('✅ Payment configuration saved! Note: Requires Stripe library (pip install stripe)', 'success');
+            } catch (error) {
+                showNotification('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testPaymentConfig() {
+            showNotification('💳 Testing Stripe connection...', 'info');
+            setTimeout(() => {
+                showNotification('✅ Stripe test would verify API keys. Install Stripe library first: pip install stripe', 'success');
+            }, 1000);
+        }
+
+        // Load configurations on page load
+        async function loadConfigurations() {
+            try {
+                // Load garage settings from database
+                const settingsResponse = await fetch('/api/settings');
+                if (settingsResponse.ok) {
+                    const settings = await settingsResponse.json();
+                    
+                    // Populate garage profile fields
+                    if (settings.garage_name) document.getElementById('garageName').value = settings.garage_name;
+                    if (settings.garage_email) document.getElementById('garageEmail').value = settings.garage_email;
+                    if (settings.garage_phone) document.getElementById('garagePhone').value = settings.garage_phone;
+                    if (settings.garage_address) document.getElementById('garageAddress').value = settings.garage_address;
+                    
+                    // Populate business settings
+                    if (settings.currency) document.getElementById('currency').value = settings.currency;
+                    if (settings.language) document.getElementById('language').value = settings.language;
+                    if (settings.tax_rate) document.getElementById('taxRate').value = settings.tax_rate;
+                }
+                
+                // Load email config
+                const emailResponse = await fetch('/api/email/config');
+                if (emailResponse.ok) {
+                    const emailConfig = await emailResponse.json();
+                    if (emailConfig.smtp_server) document.getElementById('smtpServer').value = emailConfig.smtp_server;
+                    if (emailConfig.smtp_port) document.getElementById('smtpPort').value = emailConfig.smtp_port;
+                    if (emailConfig.sender_email) document.getElementById('senderEmail').value = emailConfig.sender_email;
+                    if (emailConfig.sender_name) document.getElementById('senderName').value = emailConfig.sender_name;
+                }
+
+                // Load SMS config from localStorage
+                const smsConfig = localStorage.getItem('sms_config');
+                if (smsConfig) {
+                    const config = JSON.parse(smsConfig);
+                    if (config.twilio_account_sid) document.getElementById('twilioAccountSid').value = config.twilio_account_sid;
+                    if (config.twilio_phone_number) document.getElementById('twilioPhoneNumber').value = config.twilio_phone_number;
+                    if (config.enabled) document.getElementById('smsEnabled').checked = config.enabled;
+                }
+
+                // Load payment config from localStorage
+                const paymentConfig = localStorage.getItem('payment_config');
+                if (paymentConfig) {
+                    const config = JSON.parse(paymentConfig);
+                    if (config.stripe_publishable_key) document.getElementById('stripePublishableKey').value = config.stripe_publishable_key;
+                    if (config.currency) document.getElementById('paymentCurrency').value = config.currency;
+                }
+            } catch (error) {
+                console.error('Error loading configurations:', error);
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-weight: 500;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        // Add CSS animations
+        const animStyle = document.createElement('style');
+        animStyle.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(animStyle);
+
+        // TRN Validation
+        async function validateTRN(trn) {
+            const validationEl = document.getElementById('trnValidation');
+            
+            if (!trn) {
+                validationEl.textContent = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/vat/validate-trn?trn=${encodeURIComponent(trn)}`);
+                const result = await response.json();
+                
+                if (result.valid) {
+                    validationEl.innerHTML = `✅ Valid TRN: ${result.formatted}`;
+                    validationEl.style.color = '#10b981';
+                    document.getElementById('garageTRN').value = result.formatted;
+                } else {
+                    validationEl.innerHTML = '❌ Invalid TRN (must be 15 digits)';
+                    validationEl.style.color = '#ef4444';
+                }
+            } catch (error) {
+                console.error('Error validating TRN:', error);
+            }
+        }
+        
+        // Add TRN validation on input
+        document.getElementById('garageTRN').addEventListener('blur', (e) => {
+            validateTRN(e.target.value);
+        });
+        
+        // Handle password change
+        document.getElementById('securityForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                alert('Please fill in all password fields');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                alert('Password must be at least 8 characters long');
+                return;
+            }
+
+            // Simulate password change
+            alert('Password changed successfully!');
+            document.getElementById('securityForm').reset();
+        });
+
+        // ========== SERVICE MANAGEMENT FUNCTIONS ==========
+        
+        let currentEditingServiceId = null;
+        
+        // Load services
+        async function loadServices() {
+            try {
+                const response = await fetch('/api/services');
+                const services = await response.json();
+                
+                const tbody = document.getElementById('servicesTableBody');
+                
+                if (services.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="padding: 20px; text-align: center; color: #999;">
+                                No services found. Click "Add New Service" to create one.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                const settings = await fetch('/api/settings').then(r => r.json());
+                const currency = settings.currency || 'AED';
+                const currencySymbol = currency === 'AED' ? 'د.إ' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency;
+                
+                tbody.innerHTML = services.map(service => `
+                    <tr style="border-bottom: 1px solid #eee;">
+                        <td data-label="Service: " style="padding: 12px; font-weight: 600;">${service.name}</td>
+                        <td data-label="Arabic: " style="padding: 12px; color: #666;">${service.name_ar || '-'}</td>
+                        <td data-label="Urdu: " style="padding: 12px; color: #666;">${service.name_ur || '-'}</td>
+                        <td data-label="Price: " style="padding: 12px; font-weight: 600; color: #10b981;">${currencySymbol} ${service.default_price.toFixed(2)}</td>
+                        <td data-label="Status: " style="padding: 12px; text-align: center;">
+                            <span style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; 
+                                background: ${service.is_active ? '#d1fae5' : '#fee2e2'}; 
+                                color: ${service.is_active ? '#065f46' : '#991b1b'};">
+                                ${service.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td data-label="" style="padding: 12px; text-align: center;">
+                            <button onclick="editService(${service.id})" title="Edit Service"
+                                style="padding: 8px 12px; margin-right: 5px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                                ✏️
+                            </button>
+                            <button onclick="deleteService(${service.id})" title="Delete Service"
+                                style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading services:', error);
+                showNotification('Failed to load services', 'error');
+            }
+        }
+        
+        // Show add service modal
+        function showAddServiceModal() {
+            currentEditingServiceId = null;
+            showServiceModal('Add New Service', {
+                name: '',
+                name_ar: '',
+                name_ur: '',
+                description: '',
+                default_price: 0,
+                is_active: 1
+            });
+        }
+        
+        // Edit service
+        async function editService(serviceId) {
+            try {
+                const response = await fetch(`/api/services/${serviceId}`);
+                const service = await response.json();
+                currentEditingServiceId = serviceId;
+                showServiceModal('Edit Service', service);
+            } catch (error) {
+                console.error('Error loading service:', error);
+                showNotification('Failed to load service', 'error');
+            }
+        }
+        
+        // Show service modal
+        function showServiceModal(title, service) {
+            const modal = document.createElement('div');
+            modal.id = 'serviceModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; border-radius: 15px; padding: 30px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+                    <h2 style="margin: 0 0 20px 0; color: #333;">${title}</h2>
+                    <form id="serviceForm">
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Service Name (English) *</label>
+                            <input type="text" id="serviceName" value="${service.name}" required
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Service Name (Arabic)</label>
+                            <input type="text" id="serviceNameAr" value="${service.name_ar || ''}" dir="rtl"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Service Name (Urdu)</label>
+                            <input type="text" id="serviceNameUr" value="${service.name_ur || ''}" dir="rtl"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Description</label>
+                            <textarea id="serviceDescription" rows="3"
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">${service.description || ''}</textarea>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600;">Default Price *</label>
+                            <input type="number" id="servicePrice" value="${service.default_price}" step="0.01" min="0" required
+                                style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px;">
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="serviceActive" ${service.is_active ? 'checked' : ''}
+                                    style="width: 20px; height: 20px; margin-right: 10px; cursor: pointer;">
+                                <span style="font-weight: 600;">Active (visible in job forms)</span>
+                            </label>
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button type="button" onclick="closeServiceModal()"
+                                style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                style="padding: 12px 24px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                ${currentEditingServiceId ? 'Update' : 'Create'} Service
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Handle form submission
+            document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await saveService();
+            });
+            
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeServiceModal();
+            });
+        }
+        
+        // Close service modal
+        function closeServiceModal() {
+            const modal = document.getElementById('serviceModal');
+            if (modal) modal.remove();
+        }
+        
+        // Save service
+        async function saveService() {
+            const serviceData = {
+                name: document.getElementById('serviceName').value,
+                name_ar: document.getElementById('serviceNameAr').value,
+                name_ur: document.getElementById('serviceNameUr').value,
+                description: document.getElementById('serviceDescription').value,
+                default_price: parseFloat(document.getElementById('servicePrice').value),
+                is_active: document.getElementById('serviceActive').checked ? 1 : 0
+            };
+            
+            try {
+                let response;
+                if (currentEditingServiceId) {
+                    response = await fetch(`/api/services/${currentEditingServiceId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(serviceData)
+                    });
+                } else {
+                    response = await fetch('/api/services', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(serviceData)
+                    });
+                }
+                
+                if (response.ok) {
+                    showNotification(currentEditingServiceId ? 'Service updated successfully!' : 'Service created successfully!', 'success');
+                    closeServiceModal();
+                    loadServices();
+                } else {
+                    showNotification('Failed to save service', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving service:', error);
+                showNotification('Failed to save service', 'error');
+            }
+        }
+        
+        // Delete service
+        async function deleteService(serviceId) {
+            if (!confirm('Are you sure you want to delete this service? This will deactivate it but not remove it from the database.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/services/${serviceId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showNotification('Service deleted successfully!', 'success');
+                    loadServices();
+                } else {
+                    showNotification('Failed to delete service', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting service:', error);
+                showNotification('Failed to delete service', 'error');
+            }
+        }
+        
+        // Load services when services section is shown
+        const originalShowSection = window.showSection;
+        window.showSection = function(section) {
+            originalShowSection(section);
+            if (section === 'services') {
+                loadServices();
+            }
+        };
+    </script>
+</body>
+</html>

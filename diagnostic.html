@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMS Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00ffff;
+            border-bottom: 2px solid #00ffff;
+            padding-bottom: 10px;
+        }
+        .section {
+            background: #2a2a2a;
+            border: 1px solid #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .section h2 {
+            color: #ffff00;
+            margin-top: 0;
+        }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00ffff;
+        }
+        .result {
+            background: #000;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-size: 14px;
+        }
+        .error {
+            color: #ff0000;
+        }
+        .success {
+            color: #00ff00;
+        }
+        .warning {
+            color: #ffff00;
+        }
+        .info {
+            color: #00ffff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #00ff00;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #003300;
+            color: #00ffff;
+        }
+        tr:nth-child(even) {
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 GMS System Diagnostic Tool</h1>
+    
+    <div class="section">
+        <h2>📊 Customer Data Tests</h2>
+        <button onclick="testCustomerAPI()">Test Customer API</button>
+        <button onclick="testDebugEndpoint()">Test Debug Endpoint</button>
+        <button onclick="checkIDConflicts()">Check ID Conflicts</button>
+        <button onclick="testInvoiceCreation()">Test Invoice Creation</button>
+        <div id="customerResults" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>🔍 Invoice Modal Test</h2>
+        <button onclick="simulateInvoiceModal()">Simulate Invoice Modal Load</button>
+        <div id="invoiceResults" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>📋 System Status</h2>
+        <button onclick="fullSystemCheck()">Run Full System Check</button>
+        <div id="systemResults" class="result"></div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        function log(message, type = 'info') {
+            const colors = {
+                error: 'error',
+                success: 'success',
+                warning: 'warning',
+                info: 'info'
+            };
+            return `<span class="${colors[type]}">${message}</span>\n`;
+        }
+
+        async function testCustomerAPI() {
+            const output = document.getElementById('customerResults');
+            output.innerHTML = log('🔄 Testing Customer API...', 'info');
+            
+            try {
+                const response = await api.getCustomers({ limit: 1000, _t: Date.now() });
+                output.innerHTML += log(`✅ API Response received`, 'success');
+                output.innerHTML += log(`Type: ${Array.isArray(response) ? 'Array' : 'Object'}`, 'info');
+                
+                const customers = Array.isArray(response) ? response : (response.customers || []);
+                output.innerHTML += log(`\n📊 Customer Count: ${customers.length}`, 'success');
+                
+                if (customers.length > 0) {
+                    output.innerHTML += log('\n📋 Customer List:', 'info');
+                    let table = '<table><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th></tr>';
+                    customers.forEach(c => {
+                        table += `<tr><td>${c.id}</td><td>${c.name}</td><td>${c.email}</td><td>${c.phone || 'N/A'}</td></tr>`;
+                    });
+                    table += '</table>';
+                    output.innerHTML += table;
+                } else {
+                    output.innerHTML += log('⚠️ No customers found!', 'warning');
+                }
+            } catch (error) {
+                output.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDebugEndpoint() {
+            const output = document.getElementById('customerResults');
+            output.innerHTML = log('🔄 Testing Debug Endpoint...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/debug/customers');
+                const data = await response.json();
+                
+                output.innerHTML += log(`✅ Debug endpoint responded`, 'success');
+                output.innerHTML += log(`Count: ${data.count}`, 'info');
+                output.innerHTML += log(`\nCustomers in MOCK_CUSTOMERS:`, 'info');
+                
+                let table = '<table><tr><th>ID</th><th>Name</th><th>Email</th></tr>';
+                data.customers.forEach(c => {
+                    table += `<tr><td>${c.id}</td><td>${c.name}</td><td>${c.email}</td></tr>`;
+                });
+                table += '</table>';
+                output.innerHTML += table;
+            } catch (error) {
+                output.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkIDConflicts() {
+            const output = document.getElementById('customerResults');
+            output.innerHTML = log('🔍 Checking for ID conflicts...', 'info');
+            
+            try {
+                const response = await api.getCustomers({ limit: 1000, _t: Date.now() });
+                const customers = Array.isArray(response) ? response : (response.customers || []);
+                
+                // Check for duplicate IDs
+                const ids = customers.map(c => c.id);
+                const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
+                
+                if (duplicates.length > 0) {
+                    output.innerHTML += log(`❌ DUPLICATE IDs FOUND: ${duplicates.join(', ')}`, 'error');
+                } else {
+                    output.innerHTML += log(`✅ No duplicate IDs found`, 'success');
+                }
+                
+                // Check ID sequence
+                output.innerHTML += log(`\n📊 ID Analysis:`, 'info');
+                output.innerHTML += log(`Lowest ID: ${Math.min(...ids)}`, 'info');
+                output.innerHTML += log(`Highest ID: ${Math.max(...ids)}`, 'info');
+                output.innerHTML += log(`Total customers: ${customers.length}`, 'info');
+                
+                // Check for gaps
+                const sortedIds = [...ids].sort((a, b) => a - b);
+                const gaps = [];
+                for (let i = 0; i < sortedIds.length - 1; i++) {
+                    if (sortedIds[i + 1] - sortedIds[i] > 1) {
+                        gaps.push(`Gap between ${sortedIds[i]} and ${sortedIds[i + 1]}`);
+                    }
+                }
+                
+                if (gaps.length > 0) {
+                    output.innerHTML += log(`\n⚠️ ID Gaps found:`, 'warning');
+                    gaps.forEach(gap => output.innerHTML += log(`  ${gap}`, 'warning'));
+                } else {
+                    output.innerHTML += log(`✅ No ID gaps`, 'success');
+                }
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function simulateInvoiceModal() {
+            const output = document.getElementById('invoiceResults');
+            output.innerHTML = log('🔄 Simulating Invoice Modal Customer Load...', 'info');
+            
+            try {
+                // Simulate exactly what the invoice modal does
+                output.innerHTML += log('Step 1: Fetching customers with cache bust', 'info');
+                const timestamp = Date.now();
+                const response = await api.getCustomers({ limit: 1000, _t: timestamp });
+                
+                output.innerHTML += log('Step 2: Parsing response', 'info');
+                const customers = Array.isArray(response) ? response : (response.customers || []);
+                
+                output.innerHTML += log(`Step 3: Got ${customers.length} customers`, customers.length > 0 ? 'success' : 'error');
+                
+                if (customers.length === 0) {
+                    output.innerHTML += log('❌ PROBLEM: No customers returned!', 'error');
+                    return;
+                }
+                
+                output.innerHTML += log('\nStep 4: Building dropdown options', 'info');
+                const options = ['<option value="">Select Customer</option>'];
+                
+                customers.forEach((customer, index) => {
+                    const displayName = `${customer.name} - ${customer.email || customer.phone || 'No contact'}`;
+                    options.push(`<option value="${customer.id}">${displayName}</option>`);
+                    output.innerHTML += log(`  ${index + 1}. ${customer.name} (ID: ${customer.id})`, 'success');
+                });
+                
+                output.innerHTML += log(`\n✅ Would create ${options.length - 1} dropdown options`, 'success');
+                output.innerHTML += log('\nSample dropdown HTML:', 'info');
+                output.innerHTML += `<div style="background: #000; padding: 10px; margin: 10px 0;">${options.slice(0, 5).join('\n')}</div>`;
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            }
+        }
+
+        async function testInvoiceCreation() {
+            const output = document.getElementById('customerResults');
+            output.innerHTML = log('🔄 Testing Invoice Creation Flow...', 'info');
+            
+            try {
+                // Get customers first
+                const response = await api.getCustomers({ limit: 1000, _t: Date.now() });
+                const customers = Array.isArray(response) ? response : (response.customers || []);
+                
+                if (customers.length === 0) {
+                    output.innerHTML += log('❌ No customers to test with', 'error');
+                    return;
+                }
+                
+                const testCustomer = customers[0];
+                output.innerHTML += log(`Testing with customer: ${testCustomer.name} (ID: ${testCustomer.id})`, 'info');
+                
+                // Test invoice data structure
+                const testInvoice = {
+                    customer_id: testCustomer.id,
+                    amount: 100,
+                    tax_rate: 5,
+                    description: 'Test Invoice',
+                    due_date: '2025-12-01',
+                    payment_terms: 'net_30'
+                };
+                
+                output.innerHTML += log('\nTest invoice data:', 'info');
+                output.innerHTML += log(JSON.stringify(testInvoice, null, 2), 'info');
+                output.innerHTML += log('\n✅ Invoice structure looks correct', 'success');
+                output.innerHTML += log('⚠️ Not actually creating invoice (test mode)', 'warning');
+                
+            } catch (error) {
+                output.innerHTML += log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function fullSystemCheck() {
+            const output = document.getElementById('systemResults');
+            output.innerHTML = log('🔄 Running Full System Check...', 'info');
+            
+            try {
+                // Test 1: API connectivity
+                output.innerHTML += log('\n[1/5] Testing API connectivity...', 'info');
+                const response = await fetch('http://localhost:3000/api/dashboard/stats');
+                if (response.ok) {
+                    output.innerHTML += log('✅ API server is responding', 'success');
+                } else {
+                    output.innerHTML += log('❌ API server returned error', 'error');
+                }
+                
+                // Test 2: Customer endpoint
+                output.innerHTML += log('\n[2/5] Testing customer endpoint...', 'info');
+                const customerResponse = await api.getCustomers();
+                const customers = Array.isArray(customerResponse) ? customerResponse : (customerResponse.customers || []);
+                output.innerHTML += log(`✅ Customer endpoint working (${customers.length} customers)`, 'success');
+                
+                // Test 3: Check for "Osman"
+                output.innerHTML += log('\n[3/5] Looking for "Osman"...', 'info');
+                const osman = customers.find(c => c.name.toLowerCase().includes('osman'));
+                if (osman) {
+                    output.innerHTML += log(`✅ Found Osman! ID: ${osman.id}, Email: ${osman.email}`, 'success');
+                } else {
+                    output.innerHTML += log('❌ Osman not found in customer list', 'error');
+                }
+                
+                // Test 4: Check authentication
+                output.innerHTML += log('\n[4/5] Checking authentication...', 'info');
+                if (api.isAuthenticated()) {
+                    const user = api.getCurrentUser();
+                    output.innerHTML += log(`✅ Authenticated as: ${user ? user.name : 'Unknown'}`, 'success');
+                } else {
+                    output.innerHTML += log('❌ Not authenticated', 'error');
+                }
+                
+                // Test 5: Check browser cache
+                output.innerHTML += log('\n[5/5] Checking cache status...', 'info');
+                const cacheTest1 = await api.getCustomers({ _t: Date.now() });
+                await new Promise(resolve => setTimeout(resolve, 100));
+                const cacheTest2 = await api.getCustomers({ _t: Date.now() });
+                
+                const count1 = Array.isArray(cacheTest1) ? cacheTest1.length : (cacheTest1.customers || []).length;
+                const count2 = Array.isArray(cacheTest2) ? cacheTest2.length : (cacheTest2.customers || []).length;
+                
+                if (count1 === count2) {
+                    output.innerHTML += log(`✅ Cache busting working (consistent ${count1} customers)`, 'success');
+                } else {
+                    output.innerHTML += log(`⚠️ Inconsistent results: ${count1} vs ${count2}`, 'warning');
+                }
+                
+                output.innerHTML += log('\n' + '='.repeat(50), 'info');
+                output.innerHTML += log('SYSTEM CHECK COMPLETE', 'success');
+                
+            } catch (error) {
+                output.innerHTML += log(`\n❌ System check failed: ${error.message}`, 'error');
+                console.error('Full error:', error);
+            }
+        }
+
+        // Auto-run basic check on load
+        window.addEventListener('load', () => {
+            setTimeout(fullSystemCheck, 500);
+        });
+    </script>
+</body>
+</html>
