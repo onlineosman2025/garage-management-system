@@ -22,10 +22,11 @@ HOST = '0.0.0.0'
 
 class SimpleHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
+        # Add CORS headers before ending
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-        super().end_headers()
+        http.server.SimpleHTTPRequestHandler.end_headers(self)
 
     def do_GET(self):
         # Handle root path
