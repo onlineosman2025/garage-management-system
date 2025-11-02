@@ -676,10 +676,6 @@ def main():
             # Only open browser in local development
             if PORT == 3000:
                 webbrowser.open(f'http://{HOST}:{PORT}')
-            print("\nLogin accounts:")
-            print("  Admin: admin@garage.com / admin123")
-            print("  Owner: owner@garage.com / garage123")
-            print("  Customer: customer@email.com / customer123")
             print("\nPress Ctrl+C to stop")
             print("=" * 50)
             httpd.serve_forever()
