@@ -669,9 +669,8 @@
 
         async function loadInvoices() {
             try {
-                // Force fresh data - no cache
-                const response = await fetch('http://localhost:3000/api/invoices?_=' + Date.now());
-                allInvoices = await response.json();
+                // Use the API class instead of hardcoded localhost
+                allInvoices = await api.getInvoices();
                 console.log('Loaded invoices:', allInvoices);
                 updateStats();
                 displayInvoices(allInvoices);

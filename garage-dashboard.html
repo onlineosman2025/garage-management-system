@@ -891,7 +891,7 @@
                 });
                 
                 // Also test debug endpoint
-                const debugResponse = await fetch('http://localhost:3000/api/debug/customers');
+                const debugResponse = await fetch('https://garage-management-system-production.up.railway.app/api/debug/customers');
                 const debugData = await debugResponse.json();
                 console.log('Debug endpoint response:', debugData);
                 
