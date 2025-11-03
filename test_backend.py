@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Minimal Railway backend test - isolates the deployment issue
+Updated: 2025-11-03-13-12-FORCE-DEPLOY
 """
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -33,29 +34,38 @@ def health():
 
 @app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
 def login():
-    if request.method == 'OPTIONS':
-        return '', 200
-    
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    
-    # Accept any login for testing
-    return jsonify({
-        'success': True,
-        'access_token': 'test-token-123',
-        'user': {
-            'id': 1,
-            'email': email,
-            'name': 'Garage Owner',
-            'role': 'owner'
-        },
-        'garage': {
-            'id': 1,
-            'name': 'Test Garage',
-            'currency': 'AED'
-        }
-    })
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No JSON data received'}), 400
+            
+        email = data.get('email', 'unknown')
+        password = data.get('password', 'unknown')
+        
+        print(f"Login attempt: {email}")
+        
+        # Accept any login for testing
+        return jsonify({
+            'success': True,
+            'access_token': 'test-token-123',
+            'user': {
+                'id': 1,
+                'email': email,
+                'name': 'Garage Owner',
+                'role': 'owner'
+            },
+            'garage': {
+                'id': 1,
+                'name': 'Test Garage',
+                'currency': 'AED'
+            }
+        })
+    except Exception as e:
+        print(f"Login error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
