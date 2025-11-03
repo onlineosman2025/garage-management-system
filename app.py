@@ -21,7 +21,12 @@ DB_FILE = Path(__file__).parent / 'garage.db'
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 # Enable CORS for all routes - this fixes everything!
-CORS(app)
+CORS(app, 
+    origins=['https://cute-crisp-ba7114.netlify.app', 'http://localhost:3000', '*'],
+    methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allow_headers=['Content-Type', 'Authorization'],
+    supports_credentials=True
+)
 
 PORT = int(os.environ.get('PORT', 3000))
 HOST = '0.0.0.0'
@@ -42,6 +47,16 @@ print("=" * 50)
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
+
+@app.route('/api/health')
+def health():
+    """Health check endpoint for Railway"""
+    return jsonify({
+        'status': 'healthy',
+        'message': 'GMS Backend is running!',
+        'timestamp': datetime.now().isoformat(),
+        'cors_enabled': True
+    })
 
 @app.route('/api/test')
 def test():
