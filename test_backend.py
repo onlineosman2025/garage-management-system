@@ -29,12 +29,21 @@ def home():
         'message': 'This is a minimal test to isolate deployment issues'
     })
 
-@app.route('/api/health')
+@app.route('/api/health', methods=['GET'])
 def health():
+    # Check if database manager is working
+    try:
+        garages = db_manager.list_all_garages()
+        db_status = f"Database manager OK - {len(garages)} garages registered"
+    except Exception as e:
+        db_status = f"Database manager ERROR: {str(e)}"
+    
     return jsonify({
         'status': 'healthy',
-        'message': 'Test backend working!',
-        'cors_enabled': True
+        'message': 'Render backend is running!',
+        'timestamp': '2025-11-03-22-45',
+        'database_status': db_status,
+        'database_folder': 'databases/'
     })
 
 @app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
