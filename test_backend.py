@@ -398,7 +398,35 @@ def register():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+def create_demo_accounts():
+    """Create demo accounts if they don't exist"""
+    try:
+        # Check if demo account exists
+        demo_email = 'owner@garage.com'
+        user_info = db_manager.verify_login(demo_email, 'garage123')
+        
+        if not user_info:
+            print("📝 Creating demo account...")
+            demo_garage = {
+                'garage_name': 'Demo Garage',
+                'owner_name': 'Demo Owner',
+                'email': demo_email,
+                'phone': '+971501234567',
+                'password': 'garage123',
+                'trial_days': 14
+            }
+            result = db_manager.create_garage_database(demo_garage)
+            print(f"✅ Demo account created: {demo_email} / garage123")
+            print(f"📁 Database: {result['database_name']}")
+        else:
+            print(f"✅ Demo account already exists: {demo_email}")
+    except Exception as e:
+        print(f"⚠️ Error creating demo account: {e}")
+
 if __name__ == '__main__':
+    # Create demo accounts on startup
+    create_demo_accounts()
+    
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting test backend on port {port}")
     app.run(host='0.0.0.0', port=port, debug=False)
