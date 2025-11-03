@@ -1,0 +1,7 @@
+*.html
+*.css
+*.js
+!app.py
+!test-backend.py
+!requirements.txt
+!Procfile
