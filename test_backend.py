@@ -2,7 +2,7 @@
 """
 Minimal Railway backend test - isolates the deployment issue
 """
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 
@@ -36,13 +36,24 @@ def login():
     if request.method == 'OPTIONS':
         return '', 200
     
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    # Accept any login for testing
     return jsonify({
         'success': True,
-        'token': 'test-token-123',
+        'access_token': 'test-token-123',
         'user': {
             'id': 1,
-            'email': 'owner@garage.com',
-            'name': 'Garage Owner'
+            'email': email,
+            'name': 'Garage Owner',
+            'role': 'owner'
+        },
+        'garage': {
+            'id': 1,
+            'name': 'Test Garage',
+            'currency': 'AED'
         }
     })
 
