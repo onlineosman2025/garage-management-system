@@ -1461,7 +1461,7 @@ Dubai, UAE</textarea>
                         <td data-label="Service: " style="padding: 12px; font-weight: 600;">${service.name}</td>
                         <td data-label="Arabic: " style="padding: 12px; color: #666;">${service.name_ar || '-'}</td>
                         <td data-label="Urdu: " style="padding: 12px; color: #666;">${service.name_ur || '-'}</td>
-                        <td data-label="Price: " style="padding: 12px; font-weight: 600; color: #10b981;">${currencySymbol} ${service.default_price.toFixed(2)}</td>
+                        <td data-label="Price: " style="padding: 12px; font-weight: 600; color: #10b981;">${currencySymbol} ${(service.default_price || service.price || 0).toFixed(2)}</td>
                         <td data-label="Status: " style="padding: 12px; text-align: center;">
                             <span style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; 
                                 background: ${service.is_active ? '#d1fae5' : '#fee2e2'}; 
