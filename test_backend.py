@@ -203,6 +203,54 @@ def get_services():
         print(f"Services error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/settings', methods=['GET', 'OPTIONS'])
+def get_settings():
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print("Settings requested")
+        
+        # Return mock settings data
+        return jsonify({
+            'garage_name': 'Test Garage',
+            'currency': 'AED',
+            'email': 'owner@garage.com',
+            'phone': '+97123456789',
+            'address': 'Dubai, UAE',
+            'tax_rate': 5.0,
+            'invoice_prefix': 'INV',
+            'low_stock_threshold': 10
+        })
+    except Exception as e:
+        print(f"Settings error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/dashboard/revenue', methods=['GET', 'OPTIONS'])
+def get_revenue():
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print("Revenue data requested")
+        
+        # Return mock revenue data
+        return jsonify({
+            'monthly_data': [
+                {'month': 'Jan', 'revenue': 12000},
+                {'month': 'Feb', 'revenue': 15000},
+                {'month': 'Mar', 'revenue': 18000},
+                {'month': 'Apr', 'revenue': 22000},
+                {'month': 'May', 'revenue': 25000},
+                {'month': 'Jun', 'revenue': 28000}
+            ],
+            'total_revenue': 120000,
+            'growth_rate': 15.5
+        })
+    except Exception as e:
+        print(f"Revenue error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting test backend on port {port}")
