@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Fixed for Railway deployment - 2025-11-03-10-33
 from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 import os
