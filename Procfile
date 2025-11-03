@@ -1,2 +1,2 @@
-web: python3 app.py
-# Fixed for Railway deployment - 2025-11-03-10-48
+web: python3 test-backend.py
+# Test minimal backend - 2025-11-03-10-58
