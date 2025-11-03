@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test - Direct Connection</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .box { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .good { background: #d4edda; color: #155724; }
+        .bad { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        h2 { margin-top: 0; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Direct API Test</h1>
+    
+    <div class="box info">
+        <h2>📋 Purpose</h2>
+        <p>This page tests the Railway API directly without any service worker interference.</p>
+        <p>If this works, the issue is browser cache/service worker.</p>
+        <button class="btn" onclick="testAPI()">Test API Connection</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'https://garage-management-system-production.up.railway.app/api';
+        
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="box">🔄 Testing API...</div>';
+            
+            let html = '';
+            
+            // Test 1: Login
+            html += '<div class="box">';
+            html += '<h2>1. Login Test</h2>';
+            try {
+                const response = await fetch(API_URL + '/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: 'admin@garage.com', 
+                        password: 'admin123' 
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('auth_token', data.token);
+                    html += '<div class="good">✅ Login successful</div>';
+                    html += '<p>Token received: ' + data.token.substring(0, 20) + '...</p>';
+                } else {
+                    html += '<div class="bad">❌ Login failed: ' + response.status + '</div>';
+                }
+            } catch (error) {
+                html += '<div class="bad">❌ Login error: ' + error.message + '</div>';
+            }
+            html += '</div>';
+            
+            // Test 2: Services
+            html += '<div class="box">';
+            html += '<h2>2. Services API Test</h2>';
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(API_URL + '/services?active_only=true', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    html += '<div class="good">✅ Services API working</div>';
+                    html += '<p>Found ' + data.length + ' services</p>';
+                    if (data.length > 0) {
+                        html += '<p>First service: ' + data[0].name + '</p>';
+                    }
+                } else {
+                    html += '<div class="bad">❌ Services API failed: ' + response.status + ' ' + response.statusText + '</div>';
+                }
+            } catch (error) {
+                html += '<div class="bad">❌ Services API error: ' + error.message + '</div>';
+            }
+            html += '</div>';
+            
+            // Test 3: Vehicles
+            html += '<div class="box">';
+            html += '<h2>3. Vehicles API Test</h2>';
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(API_URL + '/vehicles?active_only=true', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    html += '<div class="good">✅ Vehicles API working</div>';
+                    html += '<p>Found ' + data.length + ' vehicles</p>';
+                    if (data.length > 0) {
+                        html += '<p>First vehicle: ' + data[0].make + ' ' + data[0].model + '</p>';
+                    }
+                } else {
+                    html += '<div class="bad">❌ Vehicles API failed: ' + response.status + ' ' + response.statusText + '</div>';
+                }
+            } catch (error) {
+                html += '<div class="bad">❌ Vehicles API error: ' + error.message + '</div>';
+            }
+            html += '</div>';
+            
+            // Test 4: Settings
+            html += '<div class="box">';
+            html += '<h2>4. Settings API Test</h2>';
+            try {
+                const token = localStorage.getItem('auth_token');
+                const response = await fetch(API_URL + '/settings', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    html += '<div class="good">✅ Settings API working</div>';
+                    html += '<p>Garage name: ' + (data.garage_name || 'Not set') + '</p>';
+                    html += '<p>Currency: ' + (data.currency || 'AED') + '</p>';
+                } else {
+                    html += '<div class="bad">❌ Settings API failed: ' + response.status + ' ' + response.statusText + '</div>';
+                }
+            } catch (error) {
+                html += '<div class="bad">❌ Settings API error: ' + error.message + '</div>';
+            }
+            html += '</div>';
+            
+            // Conclusion
+            html += '<div class="box info">';
+            html += '<h2>💡 Conclusion</h2>';
+            html += '<p>If tests above show ✅, then:</p>';
+            html += '<ul>';
+            html += '<li>✅ Railway API is working</li>';
+            html += '<li>✅ Backend is online</li>';
+            html += '<li>❌ Browser cache/service worker is the problem</li>';
+            html += '</ul>';
+            html += '<p><strong>Solution:</strong> Use incognito mode (Ctrl + Shift + N) for the garage dashboard.</p>';
+            html += '</div>';
+            
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
