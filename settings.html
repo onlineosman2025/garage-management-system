@@ -963,6 +963,16 @@ Dubai, UAE</textarea>
     <script src="js/api.js"></script>
     <script src="professional_notifications.js"></script>
     <script>
+        // Railway API Configuration
+        const API_URL = 'https://garage-management-system-production.up.railway.app/api';
+        
+        function getAuthHeaders() {
+            const token = localStorage.getItem('auth_token');
+            return {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
+        }
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             if (!api.isAuthenticated()) {
@@ -996,7 +1006,9 @@ Dubai, UAE</textarea>
             
             try {
                 // Load settings from database API
-                const response = await fetch('/api/settings');
+                const response = await fetch(API_URL + '/settings', {
+                    headers: getAuthHeaders()
+                });
                 if (response.ok) {
                     const settings = await response.json();
                     console.log('Loaded settings from database:', settings);
@@ -1111,11 +1123,9 @@ Dubai, UAE</textarea>
 
             try {
                 // Save to database via API
-                const response = await fetch('/api/settings', {
+                const response = await fetch(API_URL + '/settings', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(dbSettings)
                 });
 
@@ -1173,9 +1183,9 @@ Dubai, UAE</textarea>
             }
 
             try {
-                const response = await fetch('/api/email/config', {
+                const response = await fetch(API_URL + '/email/config', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(emailConfig)
                 });
 
@@ -1264,7 +1274,9 @@ Dubai, UAE</textarea>
         async function loadConfigurations() {
             try {
                 // Load garage settings from database
-                const settingsResponse = await fetch('/api/settings');
+                const settingsResponse = await fetch(API_URL + '/settings', {
+                    headers: getAuthHeaders()
+                });
                 if (settingsResponse.ok) {
                     const settings = await settingsResponse.json();
                     
@@ -1281,7 +1293,9 @@ Dubai, UAE</textarea>
                 }
                 
                 // Load email config
-                const emailResponse = await fetch('/api/email/config');
+                const emailResponse = await fetch(API_URL + '/email/config', {
+                    headers: getAuthHeaders()
+                });
                 if (emailResponse.ok) {
                     const emailConfig = await emailResponse.json();
                     if (emailConfig.smtp_server) document.getElementById('smtpServer').value = emailConfig.smtp_server;
@@ -1418,7 +1432,9 @@ Dubai, UAE</textarea>
         // Load services
         async function loadServices() {
             try {
-                const response = await fetch('/api/services');
+                const response = await fetch(API_URL + '/services', {
+                    headers: getAuthHeaders()
+                });
                 const services = await response.json();
                 
                 const tbody = document.getElementById('servicesTableBody');
@@ -1434,7 +1450,9 @@ Dubai, UAE</textarea>
                     return;
                 }
                 
-                const settings = await fetch('/api/settings').then(r => r.json());
+                const settings = await fetch(API_URL + '/settings', {
+                    headers: getAuthHeaders()
+                }).then(r => r.json());
                 const currency = settings.currency || 'AED';
                 const currencySymbol = currency === 'AED' ? 'د.إ' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency;
                 
