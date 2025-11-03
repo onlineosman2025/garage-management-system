@@ -251,6 +251,54 @@ def get_revenue():
         print(f"Revenue error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/dashboard/activities', methods=['GET', 'OPTIONS'])
+def get_activities():
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print("Activities data requested")
+        
+        # Return mock activities data
+        return jsonify([
+            {
+                'id': 1,
+                'type': 'job_created',
+                'description': 'New job created for John Doe',
+                'timestamp': '2025-11-03T10:30:00Z'
+            },
+            {
+                'id': 2,
+                'type': 'payment_received',
+                'description': 'Payment received: AED 500',
+                'timestamp': '2025-11-03T09:15:00Z'
+            }
+        ])
+    except Exception as e:
+        print(f"Activities error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/email/config', methods=['GET', 'OPTIONS'])
+def get_email_config():
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        print("Email config requested")
+        
+        # Return mock email config
+        return jsonify({
+            'smtp_host': 'smtp.gmail.com',
+            'smtp_port': 587,
+            'smtp_user': 'your-email@gmail.com',
+            'smtp_password': 'your-app-password',
+            'from_email': 'your-email@gmail.com',
+            'from_name': 'Test Garage'
+        })
+    except Exception as e:
+        print(f"Email config error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting test backend on port {port}")
