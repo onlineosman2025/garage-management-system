@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garage Management System - Final Version</title>
+    <meta name="description" content="Professional Garage Management System - Final Working Version">
+    <link rel="stylesheet" href="mobile-responsive.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-144x144.png">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo i {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .logo h1 {
+            color: #333;
+            font-size: 24px;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .success {
+            background: #efe;
+            color: #3c3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .debug-info {
+            background: #f0f8ff;
+            border: 1px solid #cce;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        .backend-status {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <i class="fas fa-wrench"></i>
+            <h1>Garage Management System</h1>
+            <p style="color: #666; font-size: 14px;">Final Working Version</p>
+        </div>
+        
+        <div class="backend-status">
+            <strong>✅ Backend Status:</strong> <span id="backend-status">Checking...</span>
+        </div>
+        
+        <div class="error" id="error-message"></div>
+        <div class="success" id="success-message"></div>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" value="owner@garage.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" value="garage123" required>
+            </div>
+            
+            <button type="submit" class="login-btn" id="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+        </form>
+        
+        <div class="debug-info">
+            <strong>🔧 Debug Information:</strong><br>
+            <span id="debug-info">Loading...</span>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Initialize API and check backend
+        const api = new GarageAPI();
+        
+        // Debug information
+        console.log('=== FINAL VERSION DEBUG ===');
+        console.log('Base URL:', api.baseURL);
+        console.log('User Agent:', navigator.userAgent);
+        console.log('Current URL:', window.location.href);
+        
+        // Update debug info on page
+        document.getElementById('debug-info').innerHTML = `
+            Base URL: ${api.baseURL}<br>
+            User Agent: ${navigator.userAgent}<br>
+            Current URL: ${window.location.href}<br>
+            Timestamp: ${new Date().toISOString()}
+        `;
+        
+        // Check backend health
+        async function checkBackend() {
+            try {
+                const response = await fetch(api.baseURL.replace('/api', '') + '/api/health');
+                const data = await response.json();
+                console.log('Backend health check:', data);
+                document.getElementById('backend-status').innerHTML = '✅ Online & Healthy';
+                document.getElementById('backend-status').style.background = '#d4edda';
+                document.getElementById('backend-status').style.color = '#155724';
+            } catch (error) {
+                console.error('Backend health check failed:', error);
+                document.getElementById('backend-status').innerHTML = '❌ Offline or Error';
+                document.getElementById('backend-status').style.background = '#f8d7da';
+                document.getElementById('backend-status').style.color = '#721c24';
+            }
+        }
+        
+        // Check backend on load
+        checkBackend();
+        
+        // Handle login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('login-btn');
+            const errorMsg = document.getElementById('error-message');
+            const successMsg = document.getElementById('success-message');
+            
+            console.log('=== LOGIN ATTEMPT ===');
+            console.log('Email:', email);
+            console.log('Password:', password);
+            console.log('Base URL:', api.baseURL);
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            try {
+                const result = await api.login(email, password);
+                console.log('Login successful:', result);
+                
+                successMsg.textContent = 'Login successful! Redirecting...';
+                successMsg.style.display = 'block';
+                
+                // Store user data
+                localStorage.setItem('user_email', email);
+                localStorage.setItem('login_time', new Date().toISOString());
+                
+                // Redirect to dashboard
+                setTimeout(() => {
+                    window.location.href = 'garage-dashboard.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Login failed:', error);
+                errorMsg.textContent = 'Login failed: ' + error.message;
+                errorMsg.style.display = 'block';
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            }
+        });
+    </script>
+</body>
+</html>
