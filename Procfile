@@ -1,2 +1,2 @@
-web: python simple_server.py
-# Updated Nov 2, 2025
+web: python3 app.py
+# Fixed for Railway deployment - 2025-11-03-10-48
