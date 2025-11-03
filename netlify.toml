@@ -1,8 +1,11 @@
-# Netlify configuration for Garage Management System PWA - Updated 2025-11-03-12-55
+# Netlify configuration for Garage Management System PWA - Fixed 2025-11-03-13-10
 
 [build]
   publish = "."
-  command = "echo 'No build required - static PWA'"
+  command = "echo 'Static site - no build required'"
+
+[build.environment]
+  NODE_VERSION = "18"
 
 [[redirects]]
   from = "/api/*"
