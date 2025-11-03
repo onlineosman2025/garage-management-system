@@ -46,7 +46,7 @@ const SettingsManager = {
      */
     async loadFromDatabase() {
         try {
-            const API_BASE_URL = 'https://garage-management-system-production.up.railway.app/api';
+            const API_BASE_URL = 'https://garage-management-system-oa8e.onrender.com/api';
             const token = localStorage.getItem('auth_token');
             const response = await fetch(`${API_BASE_URL}/settings`, {
                 headers: {
