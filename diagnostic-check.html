@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnostic Check</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .box { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .good { background: #d4edda; color: #155724; }
+        .bad { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        h2 { margin-top: 0; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Service Worker & Cache Diagnostic</h1>
+    
+    <div class="box info">
+        <h2>📋 Instructions</h2>
+        <p>This page checks if you're loading the latest files or cached old versions.</p>
+        <p>Click "Run Diagnostic" to check your browser status.</p>
+        <button class="btn" onclick="runDiagnostic()">Run Diagnostic</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        async function runDiagnostic() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="box">🔄 Running diagnostic...</div>';
+            
+            let html = '';
+            
+            // Check 1: Service Worker
+            html += '<div class="box">';
+            html += '<h2>1. Service Worker Status</h2>';
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                if (registrations.length > 0) {
+                    html += '<div class="bad">❌ <strong>SERVICE WORKER ACTIVE</strong> - This is causing cache issues!</div>';
+                    html += '<p>Active workers: ' + registrations.length + '</p>';
+                    html += '<p><strong>Action needed:</strong> Unregister the service worker in DevTools</p>';
+                    html += '<ol>';
+                    html += '<li>Press F12</li>';
+                    html += '<li>Go to Application → Service Workers</li>';
+                    html += '<li>Click "Unregister"</li>';
+                    html += '</ol>';
+                } else {
+                    html += '<div class="good">✅ No service worker active - Good!</div>';
+                }
+            } else {
+                html += '<div class="info">ℹ️ Service workers not supported</div>';
+            }
+            html += '</div>';
+            
+            // Check 2: Cache Storage
+            html += '<div class="box">';
+            html += '<h2>2. Cache Storage</h2>';
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                if (cacheNames.length > 0) {
+                    html += '<div class="bad">❌ <strong>CACHES DETECTED</strong> - ' + cacheNames.length + ' caches found</div>';
+                    html += '<p>Cached items: ' + cacheNames.join(', ') + '</p>';
+                    html += '<p><strong>Action needed:</strong> Clear cache storage</p>';
+                } else {
+                    html += '<div class="good">✅ No caches - Good!</div>';
+                }
+            }
+            html += '</div>';
+            
+            // Check 3: Files Version
+            html += '<div class="box">';
+            html += '<h2>3. File Versions</h2>';
+            html += '<p>Checking if files contain latest updates...</p>';
+            
+            try {
+                // Check dashboard.js
+                const dashboardResponse = await fetch('/js/dashboard.js?_=' + Date.now());
+                const dashboardText = await dashboardResponse.text();
+                
+                if (dashboardText.includes('this.api.makeRequest')) {
+                    html += '<div class="good">✅ dashboard.js is UPDATED (uses API class)</div>';
+                } else if (dashboardText.includes("fetch('/api/")) {
+                    html += '<div class="bad">❌ dashboard.js is OLD (uses fetch with relative URLs)</div>';
+                } else {
+                    html += '<div class="info">ℹ️ dashboard.js version unknown</div>';
+                }
+                
+                // Check settings-manager.js
+                const settingsResponse = await fetch('/settings-manager.js?_=' + Date.now());
+                const settingsText = await settingsResponse.text();
+                
+                if (settingsText.includes('garage-management-system-production.up.railway.app')) {
+                    html += '<div class="good">✅ settings-manager.js is UPDATED (uses Railway URL)</div>';
+                } else if (settingsText.includes("fetch('/api/settings')")) {
+                    html += '<div class="bad">❌ settings-manager.js is OLD (uses relative URL)</div>';
+                } else {
+                    html += '<div class="info">ℹ️ settings-manager.js version unknown</div>';
+                }
+                
+                // Check service-worker.js
+                const swResponse = await fetch('/service-worker.js?_=' + Date.now());
+                const swText = await swResponse.text();
+                
+                if (swText.includes('2025-11-03-10-05')) {
+                    html += '<div class="good">✅ service-worker.js is LATEST (v2025-11-03-10-05)</div>';
+                } else {
+                    html += '<div class="bad">❌ service-worker.js is OLD (outdated version)</div>';
+                }
+                
+            } catch (error) {
+                html += '<div class="bad">❌ Error checking files: ' + error.message + '</div>';
+            }
+            html += '</div>';
+            
+            // Check 4: API Test
+            html += '<div class="box">';
+            html += '<h2>4. API Connection Test</h2>';
+            const API_URL = 'https://garage-management-system-production.up.railway.app/api';
+            const token = localStorage.getItem('auth_token');
+            
+            if (!token) {
+                html += '<div class="info">ℹ️ Not logged in - can\'t test API</div>';
+            } else {
+                try {
+                    const response = await fetch(API_URL + '/services?active_only=true', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        html += '<div class="good">✅ Railway API is WORKING (' + data.length + ' services found)</div>';
+                    } else {
+                        html += '<div class="bad">❌ API returned: ' + response.status + ' ' + response.statusText + '</div>';
+                    }
+                } catch (error) {
+                    html += '<div class="bad">❌ API connection failed: ' + error.message + '</div>';
+                }
+            }
+            html += '</div>';
+            
+            // Final Recommendation
+            html += '<div class="box info">';
+            html += '<h2>💡 Recommendation</h2>';
+            if (registrations && registrations.length > 0) {
+                html += '<p><strong>CRITICAL:</strong> Unregister the service worker to load fresh files!</p>';
+                html += '<p>Or use Incognito Mode: Ctrl + Shift + N</p>';
+            } else if (cacheNames && cacheNames.length > 0) {
+                html += '<p>Clear cache storage in DevTools (Application → Storage → Clear site data)</p>';
+            } else {
+                html += '<p>✅ Your browser is clean! Files should load correctly.</p>';
+            }
+            html += '</div>';
+            
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
