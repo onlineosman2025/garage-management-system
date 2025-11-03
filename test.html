@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head><title>Backend Test</title></head>
+<body>
+    <h1>Backend Test</h1>
+    <div id="result">Testing...</div>
+    <script>
+        fetch('https://garage-management-system-oa8e.onrender.com/api/health')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = 'SUCCESS: ' + JSON.stringify(data);
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = 'ERROR: ' + error.message;
+            });
+    </script>
+</body>
+</html>
