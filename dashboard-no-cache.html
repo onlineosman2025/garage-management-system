@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garage Dashboard - No Cache Version</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: #FF6600; color: white; padding: 20px; text-align: center; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .btn { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 600px; }
+        .form-group { margin: 10px 0; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔧 Garage Management System</h1>
+        <p>✅ NO CACHE VERSION - Direct Railway API</p>
+    </div>
+
+    <div class="container">
+        <div id="message"></div>
+        
+        <h2>📊 Dashboard</h2>
+        <button class="btn" onclick="openNewJobModal()">➕ Add New Job</button>
+        
+        <h3>📋 Recent Jobs</h3>
+        <div id="jobsList">
+            <p>Loading jobs...</p>
+        </div>
+    </div>
+
+    <!-- New Job Modal -->
+    <div id="newJobModal" class="modal">
+        <div class="modal-content">
+            <h2>➕ Add New Job</h2>
+            <form id="newJobForm">
+                <div class="form-group">
+                    <label>Customer:</label>
+                    <select id="customerSelect" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Vehicle:</label>
+                    <input type="text" id="vehicleInput" placeholder="Enter vehicle details" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Service:</label>
+                    <select id="serviceSelect" required>
+                        <option value="">Loading services...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn">✅ Create Job</button>
+                    <button type="button" class="btn" onclick="closeNewJobModal()">❌ Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        console.log('=== GARAGE DASHBOARD - NO CACHE VERSION ===');
+        console.log('Version: 2025-11-03-10-25-NO-CACHE');
+        console.log('API: https://garage-management-system-production.up.railway.app/api');
+
+        // Railway API Configuration
+        const API_URL = 'https://garage-management-system-production.up.railway.app/api';
+        let authToken = localStorage.getItem('auth_token');
+
+        function showMessage(message, isError = false) {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = `<div class="${isError ? 'error' : 'success'}">${message}</div>`;
+            setTimeout(() => messageEl.innerHTML = '', 5000);
+        }
+
+        // API Functions
+        async function apiRequest(endpoint, method = 'GET', data = null) {
+            try {
+                const config = {
+                    method,
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                if (data && (method === 'POST' || method === 'PUT')) {
+                    config.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${API_URL}${endpoint}`, config);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Load customers
+        async function loadCustomers() {
+            try {
+                console.log('🔄 Loading customers...');
+                const customers = await apiRequest('/customers?limit=1000');
+                console.log(`✅ Loaded ${customers.length} customers`);
+                
+                const select = document.getElementById('customerSelect');
+                select.innerHTML = '<option value="">Select customer...</option>';
+                
+                customers.forEach(customer => {
+                    const option = document.createElement('option');
+                    option.value = customer.id;
+                    option.textContent = `${customer.name} - ${customer.phone}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('❌ Failed to load customers:', error);
+                showMessage('Failed to load customers: ' + error.message, true);
+            }
+        }
+
+        // Load services
+        async function loadServices() {
+            try {
+                console.log('🔄 Loading services...');
+                const services = await apiRequest('/services?active_only=true');
+                console.log(`✅ Loaded ${services.length} services`);
+                
+                const select = document.getElementById('serviceSelect');
+                select.innerHTML = '<option value="">Select service...</option>';
+                
+                services.forEach(service => {
+                    const option = document.createElement('option');
+                    option.value = service.id;
+                    option.textContent = `${service.name} - AED ${service.default_price}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('❌ Failed to load services:', error);
+                showMessage('Failed to load services: ' + error.message, true);
+            }
+        }
+
+        // Load jobs
+        async function loadJobs() {
+            try {
+                console.log('🔄 Loading jobs...');
+                const jobs = await apiRequest('/jobs?limit=10');
+                console.log(`✅ Loaded ${jobs.length} jobs`);
+                
+                const jobsList = document.getElementById('jobsList');
+                if (jobs.length === 0) {
+                    jobsList.innerHTML = '<p>No jobs found</p>';
+                    return;
+                }
+
+                jobsList.innerHTML = jobs.map(job => `
+                    <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <strong>Job #${job.id}</strong><br>
+                        Customer: ${job.customer_name || 'Unknown'}<br>
+                        Vehicle: ${job.vehicle_make || 'Unknown'} ${job.vehicle_model || ''}<br>
+                        Service: ${job.service_name || 'Unknown'}<br>
+                        Status: ${job.status || 'pending'}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('❌ Failed to load jobs:', error);
+                showMessage('Failed to load jobs: ' + error.message, true);
+            }
+        }
+
+        // Modal functions
+        function openNewJobModal() {
+            document.getElementById('newJobModal').style.display = 'block';
+            loadCustomers();
+            loadServices();
+        }
+
+        function closeNewJobModal() {
+            document.getElementById('newJobModal').style.display = 'none';
+        }
+
+        // Create job
+        document.getElementById('newJobForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            try {
+                const jobData = {
+                    customer_id: document.getElementById('customerSelect').value,
+                    vehicle_details: document.getElementById('vehicleInput').value,
+                    service_id: document.getElementById('serviceSelect').value,
+                    status: 'pending'
+                };
+
+                console.log('🔧 Creating job:', jobData);
+                const newJob = await apiRequest('/jobs', 'POST', jobData);
+                
+                console.log('✅ Job created successfully:', newJob);
+                showMessage('Job created successfully!');
+                closeNewJobModal();
+                loadJobs();
+                
+                // Reset form
+                document.getElementById('newJobForm').reset();
+            } catch (error) {
+                console.error('❌ Failed to create job:', error);
+                showMessage('Failed to create job: ' + error.message, true);
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!authToken) {
+                showMessage('Please login first', true);
+                setTimeout(() => window.location.href = '/index.html', 2000);
+                return;
+            }
+            
+            console.log('🚀 Initializing dashboard...');
+            loadJobs();
+        });
+    </script>
+</body>
+</html>

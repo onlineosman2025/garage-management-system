@@ -53,7 +53,6 @@ self.addEventListener('message', event => {
         );
     }
 });
-});
 
 // Push notification event
 self.addEventListener('push', event => {
