@@ -291,8 +291,7 @@ class Dashboard {
         try {
             console.log('🔄 Fetching vehicles for job...');
             
-            const response = await fetch('/api/vehicles?active_only=true');
-            const vehicles = await response.json();
+            const vehicles = await this.api.makeRequest('/vehicles?active_only=true');
             
             console.log(`📊 Received ${vehicles.length} vehicles from API`);
             
@@ -332,8 +331,7 @@ class Dashboard {
             
             console.log('🔄 Fetching services for job...');
             
-            const response = await fetch('/api/services?active_only=true');
-            const services = await response.json();
+            const services = await this.api.makeRequest('/services?active_only=true');
             
             console.log(`📊 Received ${services.length} active services from API`);
             console.log('📊 Services data:', services);
