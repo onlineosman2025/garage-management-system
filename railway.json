@@ -8,5 +8,6 @@
     "startCommand": "python3 test-backend.py",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
-  }
+  },
+  "version": "2025-11-03-11-25-FORCE-NEW-DEPLOY"
 }
