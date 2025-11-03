@@ -299,6 +299,61 @@ def get_email_config():
         print(f"Email config error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
+def register():
+    try:
+        if request.method == 'OPTIONS':
+            return '', 200
+            
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data received'}), 400
+            
+        # Extract registration data
+        garage_name = data.get('garage_name')
+        owner_name = data.get('owner_name')
+        email = data.get('email')
+        phone = data.get('phone')
+        password = data.get('password')
+        trial_days = data.get('trial_days', 14)
+        
+        # Validate required fields
+        if not all([garage_name, owner_name, email, password]):
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        print(f"New registration: {email} - {garage_name}")
+        
+        # Calculate trial end date
+        from datetime import datetime, timedelta
+        trial_start = datetime.now()
+        trial_end = trial_start + timedelta(days=trial_days)
+        
+        # Return success response with trial info
+        return jsonify({
+            'success': True,
+            'message': 'Registration successful',
+            'user': {
+                'id': 1,
+                'email': email,
+                'name': owner_name,
+                'role': 'owner'
+            },
+            'garage': {
+                'id': 1,
+                'name': garage_name,
+                'phone': phone
+            },
+            'trial': {
+                'start_date': trial_start.isoformat(),
+                'end_date': trial_end.isoformat(),
+                'days_remaining': trial_days,
+                'is_active': True
+            }
+        })
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     print(f"Starting test backend on port {port}")
