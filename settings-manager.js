@@ -46,7 +46,14 @@ const SettingsManager = {
      */
     async loadFromDatabase() {
         try {
-            const response = await fetch('/api/settings');
+            const API_BASE_URL = 'https://garage-management-system-production.up.railway.app/api';
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_BASE_URL}/settings`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
             if (response.ok) {
                 const dbSettings = await response.json();
                 this._dbSettingsCache = this.convertDbToSettings(dbSettings);
