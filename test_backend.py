@@ -2,10 +2,15 @@
 """
 Minimal Railway backend test - isolates the deployment issue
 Updated: 2025-11-03-13-12-FORCE-DEPLOY
+Multi-Tenant Database Support Added
 """
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
+from database_manager import DatabaseManager
+
+# Initialize database manager
+db_manager = DatabaseManager()
 
 app = Flask(__name__)
 
@@ -42,29 +47,48 @@ def login():
         if not data:
             return jsonify({'error': 'No JSON data received'}), 400
             
-        email = data.get('email', 'unknown')
-        password = data.get('password', 'unknown')
+        email = data.get('email')
+        password = data.get('password')
         
-        print(f"Login attempt: {email}")
+        if not email or not password:
+            return jsonify({'error': 'Email and password required'}), 400
         
-        # Accept any login for testing
-        return jsonify({
-            'success': True,
-            'access_token': 'test-token-123',
-            'user': {
-                'id': 1,
-                'email': email,
-                'name': 'Garage Owner',
-                'role': 'owner'
-            },
-            'garage': {
-                'id': 1,
-                'name': 'Test Garage',
-                'currency': 'AED'
-            }
-        })
+        print(f"🔐 Login attempt: {email}")
+        
+        # Verify login credentials across all garage databases
+        user_info = db_manager.verify_login(email, password)
+        
+        if user_info:
+            # Get trial status for this garage
+            trial_status = db_manager.get_trial_status(user_info['garage_id'])
+            
+            print(f"✅ Login successful: {user_info['name']} ({user_info['garage_name']})")
+            print(f"📁 Database: garage_{user_info['garage_id']}.db")
+            
+            return jsonify({
+                'success': True,
+                'access_token': f"token_{user_info['garage_id']}_{user_info['user_id']}",
+                'user': {
+                    'id': user_info['user_id'],
+                    'email': user_info['email'],
+                    'name': user_info['name'],
+                    'role': user_info['role']
+                },
+                'garage': {
+                    'id': user_info['garage_id'],
+                    'name': user_info['garage_name'],
+                    'currency': 'AED'
+                },
+                'trial': trial_status
+            })
+        else:
+            print(f"❌ Login failed: Invalid credentials for {email}")
+            return jsonify({'error': 'Invalid email or password'}), 401
+            
     except Exception as e:
-        print(f"Login error: {str(e)}")
+        print(f"❌ Login error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/dashboard/stats', methods=['GET', 'OPTIONS'])
@@ -321,17 +345,30 @@ def register():
         if not all([garage_name, owner_name, email, password]):
             return jsonify({'error': 'Missing required fields'}), 400
             
-        print(f"New registration: {email} - {garage_name}")
+        print(f"🆕 New registration: {email} - {garage_name}")
         
-        # Calculate trial end date
-        from datetime import datetime, timedelta
-        trial_start = datetime.now()
-        trial_end = trial_start + timedelta(days=trial_days)
+        # Create separate database for this garage
+        garage_data = {
+            'garage_name': garage_name,
+            'owner_name': owner_name,
+            'email': email,
+            'phone': phone,
+            'password': password,
+            'trial_days': trial_days
+        }
+        
+        result = db_manager.create_garage_database(garage_data)
+        
+        # Get trial status
+        trial_status = db_manager.get_trial_status(result['garage_id'])
+        
+        print(f"✅ Database created: {result['database_name']}")
+        print(f"📁 Location: databases/{result['database_name']}")
         
         # Return success response with trial info
         return jsonify({
             'success': True,
-            'message': 'Registration successful',
+            'message': 'Registration successful - Your own database created!',
             'user': {
                 'id': 1,
                 'email': email,
@@ -339,19 +376,17 @@ def register():
                 'role': 'owner'
             },
             'garage': {
-                'id': 1,
+                'id': result['garage_id'],
                 'name': garage_name,
-                'phone': phone
+                'phone': phone,
+                'database': result['database_name']
             },
-            'trial': {
-                'start_date': trial_start.isoformat(),
-                'end_date': trial_end.isoformat(),
-                'days_remaining': trial_days,
-                'is_active': True
-            }
+            'trial': trial_status
         })
     except Exception as e:
-        print(f"Registration error: {str(e)}")
+        print(f"❌ Registration error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
