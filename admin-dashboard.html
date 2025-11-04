@@ -1803,19 +1803,27 @@
         }
 
         function viewReceipt(filename, reference) {
+            console.log('View Receipt called:', {filename, reference});
+            
             const modal = document.getElementById('receiptModal');
             const body = document.getElementById('receiptModalBody');
             
             // Construct receipt URL
             const receiptUrl = `${api.baseURL.replace('/api', '')}/uploads/receipts/${filename}`;
+            console.log('Receipt URL constructed:', receiptUrl);
             
             body.innerHTML = `
                 <div style="text-align: center;">
                     <p style="margin-bottom: 1rem; color: #6b7280;">
                         <strong>Reference:</strong> ${reference}
                     </p>
+                    <div style="margin: 1rem 0; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+                        <strong>File:</strong> ${filename}<br>
+                        <strong>URL:</strong> <code style="font-size: 0.8em;">${receiptUrl}</code>
+                    </div>
                     <img src="${receiptUrl}" alt="Payment Receipt" class="receipt-image" 
-                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'300\\'%3E%3Crect fill=\\'%23f3f4f6\\' width=\\'400\\' height=\\'300\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%236b7280\\' font-size=\\'16\\'%3EReceipt not found%3C/text%3E%3C/svg%3E';">
+                         onload="console.log('Receipt image loaded successfully')"
+                         onerror="console.error('Receipt image failed to load:', '${receiptUrl}'); this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'300\\'%3E%3Crect fill=\\'%23f3f4f6\\' width=\\'400\\' height=\\'300\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%236b7280\\' font-size=\\'16\\'%3EReceipt not found%3C/text%3E%3C/svg%3E';">
                     <p style="margin-top: 1rem; font-size: 0.875rem; color: #9ca3af;">
                         Click "Approve & Activate" to upgrade the account
                     </p>

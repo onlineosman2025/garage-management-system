@@ -4,7 +4,7 @@ Minimal Railway backend test - isolates the deployment issue
 Updated: 2025-11-03-13-12-FORCE-DEPLOY
 Multi-Tenant Database Support Added
 """
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 import os
 from database_manager import DatabaseManager
@@ -755,6 +755,34 @@ def create_demo_accounts():
                 print(f"✅ Demo account already exists: {demo_email}")
         except Exception as e:
             print(f"⚠️ Error creating demo account {demo_email}: {e}")
+
+@app.route('/uploads/receipts/<filename>')
+def serve_receipt(filename):
+    """Serve receipt files"""
+    try:
+        uploads_dir = os.path.join(os.path.dirname(__file__), 'uploads', 'receipts')
+        file_path = os.path.join(uploads_dir, filename)
+        
+        print(f"🖼️ Serving receipt: {filename}")
+        print(f"📁 Directory: {uploads_dir}")
+        print(f"📄 File path: {file_path}")
+        print(f"📂 Directory exists: {os.path.exists(uploads_dir)}")
+        print(f"📄 File exists: {os.path.exists(file_path)}")
+        
+        if not os.path.exists(file_path):
+            print(f"❌ Receipt file not found: {file_path}")
+            # List available files
+            if os.path.exists(uploads_dir):
+                files = os.listdir(uploads_dir)
+                print(f"📋 Available files: {files}")
+            return jsonify({'error': 'Receipt not found'}), 404
+            
+        return send_from_directory(uploads_dir, filename)
+    except Exception as e:
+        print(f"❌ Error serving receipt {filename}: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Receipt not found'}), 404
 
 # ===== PAYMENT ENDPOINTS =====
 
