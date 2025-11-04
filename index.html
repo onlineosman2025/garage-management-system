@@ -423,6 +423,17 @@
             document.querySelector('.login-btn').disabled = true;
             
             try {
+                // Ensure demo accounts exist (wake up backend and create accounts)
+                if (email.includes('admin') || email.includes('owner')) {
+                    console.log('[DEMO] Ensuring demo accounts exist...');
+                    try {
+                        await fetch('https://garage-management-system-oa8e.onrender.com/api/setup/create-demo-accounts');
+                        console.log('[DEMO] Demo accounts ready');
+                    } catch (e) {
+                        console.log('[DEMO] Account creation check failed, continuing...');
+                    }
+                }
+                
                 // Real API login call
                 console.log('[MOBILE DEBUG] Calling API.login...');
                 const loginData = await api.login(email, password);
