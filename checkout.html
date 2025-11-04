@@ -232,16 +232,39 @@
 
         .success-message {
             display: none;
-            background: #10b981;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            padding: 1.5rem;
+            padding: 2rem;
             border-radius: 12px;
             text-align: center;
             margin-top: 1.5rem;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+            animation: slideIn 0.5s ease-out;
         }
 
         .success-message.show {
             display: block;
+        }
+
+        .success-message h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .success-message p {
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @media (max-width: 768px) {
@@ -578,10 +601,14 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showSuccess('Payment proof submitted! Your payment is pending verification. We will upgrade your account within 24 hours.');
+                    showSuccess('✅ Payment Receipt Uploaded Successfully!\n\n⏳ Status: Waiting for Admin Approval\n\n📧 We will verify your payment and upgrade your account within 24 hours.\n\nYou will receive confirmation once approved.');
+                    
+                    // Show detailed success message
+                    document.getElementById('success-message').style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                    
                     setTimeout(() => {
                         window.location.href = '/garage-dashboard.html';
-                    }, 5000);
+                    }, 7000);
                 } else {
                     alert('❌ Error: ' + (result.error || 'Submission failed'));
                     document.getElementById('submit-cash').disabled = false;
