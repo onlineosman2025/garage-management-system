@@ -508,13 +508,32 @@
             }
 
             const userData = JSON.parse(localStorage.getItem('user_data'));
-            if (!userData || !userData.garage || !userData.garage.garage_id) {
+            console.log('User data:', userData);
+            
+            if (!userData) {
                 alert('❌ User data not found. Please log in again.');
                 window.location.href = '/index.html';
                 return;
             }
             
-            const garageId = userData.garage.garage_id;
+            // Get garage_id from different possible locations
+            let garageId = null;
+            if (userData.garage && userData.garage.garage_id) {
+                garageId = userData.garage.garage_id;
+            } else if (userData.garage_id) {
+                garageId = userData.garage_id;
+            } else if (userData.id) {
+                garageId = userData.id;
+            }
+            
+            if (!garageId) {
+                alert('❌ Garage ID not found. Please log in again.\n\nUser data: ' + JSON.stringify(userData));
+                console.error('User data structure:', userData);
+                window.location.href = '/index.html';
+                return;
+            }
+            
+            console.log('Using garage_id:', garageId);
             const formData = new FormData();
 
             formData.append('garage_id', garageId);

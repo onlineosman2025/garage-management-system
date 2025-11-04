@@ -451,6 +451,15 @@
                 if (response.ok) {
                     console.log('✅ Registration successful:', data);
                     
+                    // Store auth token and user data
+                    if (data.token) {
+                        localStorage.setItem('auth_token', data.token);
+                    }
+                    
+                    if (data.user) {
+                        localStorage.setItem('user_data', JSON.stringify(data.user));
+                    }
+                    
                     // Store trial information
                     const trialEndDate = new Date();
                     trialEndDate.setDate(trialEndDate.getDate() + 14);
@@ -459,12 +468,12 @@
                     localStorage.setItem('trial_end_date', trialEndDate.toISOString());
                     localStorage.setItem('trial_days_remaining', '14');
                     
-                    successMsg.innerHTML = '✅ Account created successfully! Redirecting to login...';
+                    successMsg.innerHTML = '✅ Account created successfully! Redirecting to dashboard...';
                     successMsg.style.display = 'block';
                     
-                    // Redirect to login after 2 seconds
+                    // Redirect to garage dashboard after 2 seconds
                     setTimeout(() => {
-                        window.location.href = 'index.html?registered=true';
+                        window.location.href = 'garage-dashboard.html';
                     }, 2000);
                     
                 } else {

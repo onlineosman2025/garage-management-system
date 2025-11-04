@@ -453,23 +453,33 @@ def register():
         print(f"✅ Database created: {result['database_name']}")
         print(f"📁 Location: databases/{result['database_name']}")
         
+        # Generate auth token (simple token for demo)
+        import secrets
+        auth_token = secrets.token_urlsafe(32)
+        
         # Return success response with trial info
         return jsonify({
             'success': True,
             'message': 'Registration successful - Your own database created!',
+            'token': auth_token,
             'user': {
                 'id': 1,
                 'email': email,
                 'name': owner_name,
-                'role': 'owner'
-            },
-            'garage': {
-                'id': result['garage_id'],
-                'name': garage_name,
-                'phone': phone,
-                'database': result['database_name']
-            },
-            'trial': trial_status
+                'role': 'garage_owner',
+                'garage_id': result['garage_id'],
+                'garage': {
+                    'garage_id': result['garage_id'],
+                    'garage_name': garage_name,
+                    'owner_name': owner_name,
+                    'email': email,
+                    'phone': phone,
+                    'database_name': result['database_name'],
+                    'created_at': datetime.now().isoformat(),
+                    'trial_end_date': trial_status['trial_end_date'],
+                    'trial_days_remaining': trial_status['days_remaining']
+                }
+            }
         })
     except Exception as e:
         print(f"❌ Registration error: {str(e)}")
