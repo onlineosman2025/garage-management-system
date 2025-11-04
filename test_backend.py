@@ -464,6 +464,91 @@ def register():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/admin/list-garages', methods=['GET'])
+def admin_list_garages():
+    """Admin endpoint to list all garages"""
+    try:
+        garages = db_manager.list_all_garages()
+        return jsonify({
+            'success': True,
+            'garages': garages,
+            'total': len(garages)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/garages', methods=['GET'])
+def admin_get_garages():
+    """Admin endpoint to get detailed garage information"""
+    try:
+        garages = db_manager.list_all_garages()
+        
+        # Enrich with trial status
+        detailed_garages = []
+        for garage in garages:
+            trial_status = db_manager.get_trial_status(garage['garage_id'])
+            garage_info = {
+                **garage,
+                'trial_days_left': trial_status.get('days_left', 0),
+                'subscription_type': trial_status.get('subscription_type', 'trial'),
+                'is_active': trial_status.get('is_active', True)
+            }
+            detailed_garages.append(garage_info)
+        
+        return jsonify({
+            'success': True,
+            'garages': detailed_garages,
+            'total': len(detailed_garages)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/garage/<garage_id>/users', methods=['GET'])
+def admin_get_garage_users(garage_id):
+    """Admin endpoint to get all users in a specific garage"""
+    try:
+        # Get users from the garage database
+        users = db_manager.get_garage_users(garage_id)
+        return jsonify({
+            'success': True,
+            'users': users,
+            'total': len(users)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/stats', methods=['GET'])
+def admin_get_stats():
+    """Admin endpoint to get system statistics"""
+    try:
+        garages = db_manager.list_all_garages()
+        
+        total_garages = len(garages)
+        trial_count = 0
+        paid_count = 0
+        active_count = 0
+        
+        for garage in garages:
+            trial_status = db_manager.get_trial_status(garage['garage_id'])
+            if trial_status.get('subscription_type') == 'trial':
+                trial_count += 1
+            elif trial_status.get('subscription_type') == 'paid':
+                paid_count += 1
+            if trial_status.get('is_active'):
+                active_count += 1
+        
+        return jsonify({
+            'success': True,
+            'stats': {
+                'total_garages': total_garages,
+                'trial_users': trial_count,
+                'paid_users': paid_count,
+                'active_users': active_count
+            }
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def create_demo_accounts():
     """Create demo accounts if they don't exist"""
     demo_accounts = [

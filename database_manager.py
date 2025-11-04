@@ -391,6 +391,44 @@ class DatabaseManager:
                     print(f"Error reading {filename}: {e}")
         
         return garages
+    
+    def get_garage_users(self, garage_id):
+        """
+        Get all users from a specific garage database
+        """
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return []
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                SELECT id, name, email, role, phone, is_active, created_at, last_login
+                FROM users
+                ORDER BY created_at DESC
+            ''')
+            
+            users = []
+            for row in cursor.fetchall():
+                users.append({
+                    'id': row[0],
+                    'name': row[1],
+                    'email': row[2],
+                    'role': row[3],
+                    'phone': row[4],
+                    'is_active': row[5],
+                    'created_at': row[6],
+                    'last_login': row[7]
+                })
+            
+            conn.close()
+            return users
+        except Exception as e:
+            print(f"Error getting users for garage {garage_id}: {e}")
+            return []
 
 
 # Example usage
