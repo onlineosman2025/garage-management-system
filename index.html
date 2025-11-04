@@ -249,80 +249,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .demo-section {
-            margin-top: 35px;
-            padding-top: 25px;
-            border-top: 1px solid #e5e5e5;
-        }
-
-        .demo-title {
-            font-size: 0.95em;
-            color: #666666;
-            margin-bottom: 18px;
-            font-weight: 500;
-        }
-
-        .demo-accounts {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .demo-account {
-            padding: 16px 18px;
-            background: #f8f8f8;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .demo-account::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 102, 0, 0.05), transparent);
-            transition: left 0.5s;
-        }
-
-        .demo-account:hover {
-            background: #ffffff;
-            border-color: #FF6600;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 102, 0, 0.15);
-        }
-
-        .demo-account:hover::before {
-            left: 100%;
-        }
-
-        .demo-account:active {
-            transform: translateY(0);
-        }
-
-        .role {
-            font-weight: 600;
-            color: #1a1a1a;
-            margin-bottom: 6px;
-            font-size: 0.95em;
-        }
-
-        .credentials {
-            font-size: 0.85em;
-            color: #666666;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            background: rgba(255, 102, 0, 0.1);
-            padding: 4px 8px;
-            border-radius: 6px;
-            display: inline-block;
-        }
-
         /* Responsive Design */
         @media (max-width: 480px) {
             .container {
@@ -353,8 +279,7 @@
 
         /* Accessibility improvements */
         .login-btn:focus,
-        .language-switcher button:focus,
-        .demo-account:focus {
+        .language-switcher button:focus {
             outline: 2px solid #FF6600;
             outline-offset: 2px;
         }
@@ -420,25 +345,6 @@
             <p data-translate="logging_in">Logging in...</p>
         </div>
 
-        <div class="demo-section">
-            <div class="demo-title" data-translate="demo_accounts">Demo Accounts</div>
-            <div class="demo-accounts">
-                <div class="demo-account" onclick="fillCredentials('admin@garage.com', 'admin123')">
-                    <div class="role" data-translate="admin">🔧 System Admin</div>
-                    <div class="credentials">admin@garage.com / admin123</div>
-                </div>
-                
-                <div class="demo-account" onclick="fillCredentials('owner@garage.com', 'garage123')">
-                    <div class="role" data-translate="garage_owner">🏪 Garage Owner</div>
-                    <div class="credentials">owner@garage.com / garage123</div>
-                </div>
-                
-                <div class="demo-account" onclick="fillCredentials('customer@email.com', 'customer123')">
-                    <div class="role" data-translate="customer">👤 Customer</div>
-                    <div class="credentials">customer@email.com / customer123</div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="js/api.js"></script>
@@ -450,33 +356,21 @@
                 email: "Email",
                 password: "Password", 
                 login: "Login",
-                logging_in: "Logging in...",
-                demo_accounts: "Demo Accounts",
-                admin: "🔧 System Admin",
-                garage_owner: "🏪 Garage Owner",
-                customer: "👤 Customer"
+                logging_in: "Logging in..."
             },
             ar: {
                 title: "نظام إدارة الورشة",
                 email: "البريد الإلكتروني",
                 password: "كلمة المرور",
                 login: "تسجيل الدخول",
-                logging_in: "جاري تسجيل الدخول...",
-                demo_accounts: "حسابات تجريبية",
-                admin: "🔧 مدير النظام",
-                garage_owner: "🏪 صاحب الورشة", 
-                customer: "👤 العميل"
+                logging_in: "جاري تسجيل الدخول..."
             },
             ur: {
                 title: "گیراج منیجمنٹ سسٹم",
                 email: "ای میل",
                 password: "پاس ورڈ",
                 login: "لاگ ان",
-                logging_in: "لاگ ان ہو رہے ہیں...",
-                demo_accounts: "ڈیمو اکاؤنٹس",
-                admin: "🔧 سسٹم ایڈمن",
-                garage_owner: "🏪 گیراج مالک",
-                customer: "👤 کسٹمر"
+                logging_in: "لاگ ان ہو رہے ہیں..."
             }
         };
 
@@ -511,10 +405,6 @@
             });
         }
 
-        function fillCredentials(email, password) {
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = password;
-        }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -559,8 +449,39 @@
             }
         });
 
+        // Check if user is already logged in and redirect
+        function checkExistingLogin() {
+            const authToken = localStorage.getItem('auth_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (authToken && userData) {
+                console.log('[AUTO-LOGIN] User already logged in, redirecting...');
+                try {
+                    const user = JSON.parse(userData);
+                    const userRole = user.role || 'customer';
+                    
+                    // Redirect based on role
+                    if (userRole === 'admin' || user.email?.includes('admin')) {
+                        window.location.href = '/admin-dashboard.html';
+                    } else if (userRole === 'garage_owner' || user.email?.includes('owner')) {
+                        window.location.href = '/garage-dashboard.html';
+                    } else {
+                        window.location.href = '/customer-dashboard.html';
+                    }
+                } catch (error) {
+                    console.error('[AUTO-LOGIN] Error parsing user data:', error);
+                    // Clear invalid data
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user_data');
+                }
+            }
+        }
+
         // Load saved language preference on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Check for existing login first
+            checkExistingLogin();
+            
             const savedLang = localStorage.getItem('preferred_language') || 'en';
             if (savedLang !== 'en') {
                 // Simulate click on the language button

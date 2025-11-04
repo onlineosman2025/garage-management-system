@@ -319,9 +319,42 @@
     <script src="js/translations.js"></script>
     <script src="js/api.js"></script>
     <script>
+        // Check authentication on page load
+        function checkAuth() {
+            const authToken = localStorage.getItem('auth_token');
+            const userData = localStorage.getItem('user_data');
+            
+            if (!authToken || !userData) {
+                console.log('[AUTH] No valid session, redirecting to login...');
+                window.location.href = '/index.html';
+                return false;
+            }
+            
+            // Display user info
+            try {
+                const user = JSON.parse(userData);
+                console.log('[AUTH] User authenticated:', user.email);
+            } catch (error) {
+                console.error('[AUTH] Invalid user data, redirecting to login...');
+                localStorage.clear();
+                window.location.href = '/index.html';
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Run auth check on page load
+        checkAuth();
+
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = 'index.html';
+                // Clear all authentication data
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_data');
+                localStorage.removeItem('garage_data');
+                console.log('[AUTH] User logged out');
+                window.location.href = '/index.html';
             }
         }
 
