@@ -830,6 +830,7 @@ def process_cash_payment():
             'receipt_filename': receipt_filename
         }
         
+        print(f"💾 Attempting to save payment data: {payment_data}")
         success = db_manager.save_payment(payment_data)
         
         if success:
@@ -840,11 +841,14 @@ def process_cash_payment():
                 'reference_number': reference_number
             })
         else:
-            return jsonify({'error': 'Failed to save payment'}), 500
+            print(f"❌ Failed to save payment for garage: {garage_id}")
+            return jsonify({'error': 'Failed to save payment. Please check if you are logged in correctly.'}), 500
             
     except Exception as e:
-        print(f"Error processing cash payment: {e}")
-        return jsonify({'error': str(e)}), 500
+        print(f"❌ Error processing cash payment: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': f'Payment processing error: {str(e)}'}), 500
 
 @app.route('/api/payment/verify/<reference_number>', methods=['POST'])
 def verify_cash_payment(reference_number):

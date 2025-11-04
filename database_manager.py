@@ -692,8 +692,17 @@ class DatabaseManager:
         garage_id = payment_data['garage_id']
         db_path = self.get_database_path(garage_id)
         
+        print(f"💾 Saving payment for garage_id: {garage_id}")
+        print(f"💾 Database path: {db_path}")
+        print(f"💾 Database exists: {os.path.exists(db_path)}")
+        
         if not os.path.exists(db_path):
-            print(f"Database not found for garage: {garage_id}")
+            print(f"❌ Database not found for garage: {garage_id}")
+            print(f"❌ Expected path: {db_path}")
+            # List available databases
+            if os.path.exists(self.base_path):
+                available = os.listdir(self.base_path)
+                print(f"📁 Available databases: {available}")
             return False
         
         try:
