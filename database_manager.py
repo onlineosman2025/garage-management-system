@@ -468,6 +468,15 @@ class DatabaseManager:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
+            # Check if columns exist, if not add them
+            cursor.execute("PRAGMA table_info(garage_info)")
+            columns = [col[1] for col in cursor.fetchall()]
+            
+            if 'suspension_reason' not in columns:
+                cursor.execute('ALTER TABLE garage_info ADD COLUMN suspension_reason TEXT')
+            if 'suspended_at' not in columns:
+                cursor.execute('ALTER TABLE garage_info ADD COLUMN suspended_at TEXT')
+            
             cursor.execute('''
                 UPDATE garage_info 
                 SET is_active = 0, suspension_reason = ?, suspended_at = ?
@@ -476,9 +485,12 @@ class DatabaseManager:
             
             conn.commit()
             conn.close()
+            print(f"✅ Garage {garage_id} suspended. Reason: {reason}")
             return True
         except Exception as e:
             print(f"Error suspending garage: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def activate_garage(self, garage_id):
@@ -510,32 +522,56 @@ class DatabaseManager:
         db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
         
         if not os.path.exists(db_path):
+            print(f"Error: Database not found for garage {garage_id}")
             return False
         
         try:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
+            # Check if trial_end_date column exists, if not add it
+            cursor.execute("PRAGMA table_info(garage_info)")
+            columns = [col[1] for col in cursor.fetchall()]
+            
+            if 'trial_end_date' not in columns:
+                # Add trial_end_date column
+                cursor.execute('ALTER TABLE garage_info ADD COLUMN trial_end_date TEXT')
+                # Set default trial end date (14 days from now)
+                default_end = (datetime.now() + timedelta(days=14)).isoformat()
+                cursor.execute('UPDATE garage_info SET trial_end_date = ?', (default_end,))
+                conn.commit()
+            
             # Get current trial end date
             cursor.execute('SELECT trial_end_date FROM garage_info WHERE garage_id = ?', (garage_id,))
             result = cursor.fetchone()
             
-            if result:
-                current_end = datetime.fromisoformat(result[0])
-                new_end = current_end + timedelta(days=days)
-                
-                cursor.execute('''
-                    UPDATE garage_info 
-                    SET trial_end_date = ?
-                    WHERE garage_id = ?
-                ''', (new_end.isoformat(), garage_id))
-                
-                conn.commit()
+            if result and result[0]:
+                try:
+                    current_end = datetime.fromisoformat(result[0])
+                except:
+                    # If date is invalid, use current date
+                    current_end = datetime.now()
+            else:
+                # If no trial end date, use current date
+                current_end = datetime.now()
             
+            new_end = current_end + timedelta(days=days)
+            
+            cursor.execute('''
+                UPDATE garage_info 
+                SET trial_end_date = ?
+                WHERE garage_id = ?
+            ''', (new_end.isoformat(), garage_id))
+            
+            conn.commit()
             conn.close()
+            
+            print(f"✅ Trial extended for {garage_id}: {days} days added. New end: {new_end.isoformat()}")
             return True
         except Exception as e:
-            print(f"Error extending trial: {e}")
+            print(f"Error extending trial for {garage_id}: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
     def update_garage_info(self, garage_id, data):
