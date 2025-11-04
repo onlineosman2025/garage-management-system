@@ -365,9 +365,10 @@
         </div>
     </div>
 
-    <script src="js/api.js"></script>
     <script>
-        const api = new GarageAPI();
+        // API Configuration
+        const API_BASE_URL = 'https://garage-management-system-oa8e.onrender.com/api';
+        
         let selectedFile = null;
         let selectedPlan = 'professional';
         let planPrice = 79;
@@ -454,7 +455,7 @@
                 const userData = JSON.parse(localStorage.getItem('user_data'));
                 const garageId = userData.garage.garage_id;
 
-                const response = await fetch(`${api.baseURL}/payment/process`, {
+                const response = await fetch(`${API_BASE_URL}/payment/process`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -499,14 +500,22 @@
 
         // Submit cash payment
         async function submitCashPayment() {
+            console.log('Submit cash payment clicked');
+            
             if (!selectedFile) {
                 alert('❌ Please upload payment receipt');
                 return;
             }
 
-            const formData = new FormData();
             const userData = JSON.parse(localStorage.getItem('user_data'));
+            if (!userData || !userData.garage || !userData.garage.garage_id) {
+                alert('❌ User data not found. Please log in again.');
+                window.location.href = '/index.html';
+                return;
+            }
+            
             const garageId = userData.garage.garage_id;
+            const formData = new FormData();
 
             formData.append('garage_id', garageId);
             formData.append('payment_method', 'cash');
@@ -521,7 +530,7 @@
                 document.getElementById('submit-cash').disabled = true;
                 document.getElementById('submit-cash').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
 
-                const response = await fetch(`${api.baseURL}/payment/cash`, {
+                const response = await fetch(`${API_BASE_URL}/payment/cash`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
@@ -542,8 +551,8 @@
                     document.getElementById('submit-cash').innerHTML = '<i class="fas fa-check"></i> Submit Payment Proof';
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('❌ Error submitting payment. Please try again.');
+                console.error('Error submitting cash payment:', error);
+                alert('❌ Error submitting payment: ' + error.message + '\n\nPlease check console for details.');
                 document.getElementById('submit-cash').disabled = false;
                 document.getElementById('submit-cash').innerHTML = '<i class="fas fa-check"></i> Submit Payment Proof';
             }
