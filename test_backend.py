@@ -864,6 +864,20 @@ def process_cash_payment():
         traceback.print_exc()
         return jsonify({'error': f'Payment processing error: {str(e)}'}), 500
 
+@app.route('/api/admin/pending-payments', methods=['GET'])
+def get_pending_payments():
+    """Admin endpoint to get all pending cash payments"""
+    try:
+        pending_payments = db_manager.get_all_pending_payments()
+        return jsonify({
+            'success': True,
+            'count': len(pending_payments),
+            'payments': pending_payments
+        })
+    except Exception as e:
+        print(f"❌ Error fetching pending payments: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/payment/verify/<reference_number>', methods=['POST'])
 def verify_cash_payment(reference_number):
     """Admin endpoint to verify cash payment and upgrade account"""

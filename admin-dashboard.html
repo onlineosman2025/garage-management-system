@@ -94,6 +94,217 @@
             background: rgba(255,255,255,0.3);
         }
 
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .bell-icon {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.6rem;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .bell-icon:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 400px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--light);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .notification-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-bottom: 0.75rem;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .approve-btn, .reject-btn, .view-receipt-btn {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .approve-btn {
+            background: var(--success);
+            color: white;
+        }
+
+        .approve-btn:hover {
+            background: #059669;
+        }
+
+        .reject-btn {
+            background: var(--danger);
+            color: white;
+        }
+
+        .reject-btn:hover {
+            background: #dc2626;
+        }
+
+        .view-receipt-btn {
+            background: var(--info);
+            color: white;
+        }
+
+        .view-receipt-btn:hover {
+            background: #2563eb;
+        }
+
+        .no-notifications {
+            padding: 2rem;
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        /* Receipt Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .close-modal:hover {
+            color: var(--dark);
+        }
+
+        .receipt-image {
+            width: 100%;
+            border-radius: 8px;
+        }
+
         /* Container */
         .container {
             max-width: 1400px;
@@ -592,6 +803,28 @@
                     <i class="fas fa-sync-alt"></i>
                     <span>Refresh</span>
                 </button>
+                
+                <!-- Notification Bell -->
+                <div class="notification-bell">
+                    <button class="bell-icon" onclick="toggleNotifications()">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </button>
+                    
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <span>💳 Payment Notifications</span>
+                            <span id="notificationCount">0 pending</span>
+                        </div>
+                        <div id="notificationList">
+                            <div class="no-notifications">
+                                <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;"></i>
+                                <p>No pending payments</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <span id="adminName">Admin</span>
                 <button class="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i> Logout
@@ -1049,6 +1282,19 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
+    <!-- Receipt Viewer Modal -->
+    <div class="modal" id="receiptModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>💳 Payment Receipt</h3>
+                <button class="close-modal" onclick="closeReceiptModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="receiptModalBody">
+                <!-- Receipt content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/admin-modals.js"></script>
     <script>
@@ -1462,13 +1708,188 @@
             console.log('[DASHBOARD] Initializing admin dashboard...');
             await fetchGarages();
             await fetchUsers();
+            await fetchPendingPayments(); // Load notifications
         }
+
+        // ===== PAYMENT NOTIFICATION SYSTEM =====
+        
+        let pendingPayments = [];
+
+        async function fetchPendingPayments() {
+            try {
+                const response = await fetch(`${api.baseURL}/admin/pending-payments`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    pendingPayments = data.payments || [];
+                    updateNotificationBadge(data.count);
+                    console.log(`✅ Loaded ${data.count} pending payments`);
+                } else {
+                    console.error('Failed to fetch pending payments');
+                }
+            } catch (error) {
+                console.error('Error fetching pending payments:', error);
+            }
+        }
+
+        function updateNotificationBadge(count) {
+            const badge = document.getElementById('notificationBadge');
+            const countText = document.getElementById('notificationCount');
+            
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+                countText.textContent = `${count} pending`;
+            } else {
+                badge.style.display = 'none';
+                countText.textContent = '0 pending';
+            }
+        }
+
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationDropdown');
+            dropdown.classList.toggle('show');
+            
+            if (dropdown.classList.contains('show')) {
+                renderNotifications();
+            }
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notificationList');
+            
+            if (pendingPayments.length === 0) {
+                list.innerHTML = `
+                    <div class="no-notifications">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem;"></i>
+                        <p>No pending payments</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = pendingPayments.map(payment => {
+                const date = new Date(payment.created_at).toLocaleString();
+                return `
+                    <div class="notification-item">
+                        <div class="notification-title">
+                            ${payment.garage_name} - ${payment.plan.charAt(0).toUpperCase() + payment.plan.slice(1)} Plan
+                        </div>
+                        <div class="notification-text">
+                            ${payment.owner_name} has uploaded a payment receipt for $${payment.total}
+                        </div>
+                        <div class="notification-meta">
+                            <span>📧 ${payment.email}</span>
+                            <span>🕒 ${date}</span>
+                        </div>
+                        <div class="notification-meta">
+                            <span>Ref: <code>${payment.reference_number}</code></span>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="view-receipt-btn" onclick="viewReceipt('${payment.receipt_filename}', '${payment.reference_number}')">
+                                <i class="fas fa-eye"></i> View Receipt
+                            </button>
+                            <button class="approve-btn" onclick="approvePayment('${payment.reference_number}')">
+                                <i class="fas fa-check"></i> Approve & Activate
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewReceipt(filename, reference) {
+            const modal = document.getElementById('receiptModal');
+            const body = document.getElementById('receiptModalBody');
+            
+            // Construct receipt URL
+            const receiptUrl = `${api.baseURL.replace('/api', '')}/uploads/receipts/${filename}`;
+            
+            body.innerHTML = `
+                <div style="text-align: center;">
+                    <p style="margin-bottom: 1rem; color: #6b7280;">
+                        <strong>Reference:</strong> ${reference}
+                    </p>
+                    <img src="${receiptUrl}" alt="Payment Receipt" class="receipt-image" 
+                         onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'300\\'%3E%3Crect fill=\\'%23f3f4f6\\' width=\\'400\\' height=\\'300\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' fill=\\'%236b7280\\' font-size=\\'16\\'%3EReceipt not found%3C/text%3E%3C/svg%3E';">
+                    <p style="margin-top: 1rem; font-size: 0.875rem; color: #9ca3af;">
+                        Click "Approve & Activate" to upgrade the account
+                    </p>
+                </div>
+            `;
+            
+            modal.classList.add('show');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('show');
+        }
+
+        async function approvePayment(referenceNumber) {
+            if (!confirm(`Are you sure you want to approve this payment and activate the account?\n\nReference: ${referenceNumber}`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${api.baseURL}/payment/verify/${referenceNumber}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ approved: true })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast('✅ Payment approved! Account has been upgraded.', 'success');
+                    closeReceiptModal();
+                    
+                    // Refresh notifications
+                    await fetchPendingPayments();
+                    renderNotifications();
+                    
+                    // Refresh dashboard
+                    await refreshDashboard();
+                } else {
+                    showToast('❌ Error: ' + (data.error || 'Failed to approve payment'), 'error');
+                }
+            } catch (error) {
+                console.error('Error approving payment:', error);
+                showToast('❌ Error approving payment', 'error');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('notificationDropdown');
+            const bell = document.querySelector('.notification-bell');
+            
+            if (!bell.contains(event.target) && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('receiptModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeReceiptModal();
+            }
+        });
 
         // Load dashboard on page load
         initDashboard();
 
-        // Auto-refresh every 30 seconds
-        setInterval(refreshDashboard, 30000);
+        // Auto-refresh every 30 seconds (including notifications)
+        setInterval(async () => {
+            await refreshDashboard();
+            await fetchPendingPayments();
+        }, 30000);
     </script>
 </body>
 </html>

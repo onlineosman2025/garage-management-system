@@ -883,6 +883,64 @@ class DatabaseManager:
         
         return False
     
+    def get_all_pending_payments(self):
+        """Get all pending cash payments across all garages"""
+        pending_payments = []
+        
+        for garage_id in self._get_all_garage_ids():
+            db_path = self.get_database_path(garage_id)
+            
+            if not os.path.exists(db_path):
+                continue
+            
+            try:
+                conn = sqlite3.connect(db_path)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                # Check if payments table exists
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='payments'")
+                if not cursor.fetchone():
+                    conn.close()
+                    continue
+                
+                # Get garage info
+                cursor.execute('SELECT garage_name, owner_name, email, phone FROM garage_info WHERE garage_id = ?', (garage_id,))
+                garage_info = cursor.fetchone()
+                
+                # Get pending payments
+                cursor.execute('''
+                    SELECT * FROM payments 
+                    WHERE status = 'pending' 
+                    ORDER BY created_at DESC
+                ''')
+                
+                payments = cursor.fetchall()
+                
+                for payment in payments:
+                    pending_payments.append({
+                        'garage_id': garage_id,
+                        'garage_name': garage_info['garage_name'] if garage_info else 'Unknown',
+                        'owner_name': garage_info['owner_name'] if garage_info else 'Unknown',
+                        'email': garage_info['email'] if garage_info else 'Unknown',
+                        'phone': garage_info['phone'] if garage_info else 'Unknown',
+                        'payment_id': payment['id'],
+                        'reference_number': payment['reference_number'],
+                        'plan': payment['plan'],
+                        'amount': payment['amount'],
+                        'total': payment['total'],
+                        'receipt_filename': payment['receipt_filename'],
+                        'created_at': payment['created_at'],
+                        'status': payment['status']
+                    })
+                
+                conn.close()
+            except Exception as e:
+                print(f"Error getting pending payments for {garage_id}: {e}")
+                continue
+        
+        return pending_payments
+    
     def _get_all_garage_ids(self):
         """Get list of all garage IDs"""
         garage_ids = []
