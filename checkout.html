@@ -517,24 +517,33 @@
             }
             
             // Get garage_id from different possible locations
-            // Priority: garage_id (top level) > garage.garage_id > never use numeric id
+            // Priority: garage_id (top level) > garage.garage_id > garage.id (from old login)
             let garageId = null;
             
-            // Check top-level garage_id first (from signup response)
+            // Check top-level garage_id first (from new signup/login response)
             if (userData.garage_id && userData.garage_id !== 1) {
                 garageId = userData.garage_id;
                 console.log('✅ Found garage_id at top level:', garageId);
             }
-            // Check nested garage.garage_id (from login response)
+            // Check nested garage.garage_id (from new login response)
             else if (userData.garage && userData.garage.garage_id) {
                 garageId = userData.garage.garage_id;
                 console.log('✅ Found garage_id in garage object:', garageId);
             }
+            // FALLBACK: Check garage.id from old login response (temporary)
+            else if (userData.garage && userData.garage.id && userData.garage.id !== 1) {
+                garageId = userData.garage.id;
+                console.log('⚠️ Using garage.id as fallback:', garageId);
+            }
             
             if (!garageId || garageId === 1) {
-                alert('❌ Valid Garage ID not found.\n\nYou may need to log out and log in again.\n\nUser data: ' + JSON.stringify(userData, null, 2));
+                alert('❌ Valid Garage ID not found.\n\nPlease LOG OUT and LOG IN again to refresh your session.\n\nCurrent user data: ' + JSON.stringify(userData, null, 2));
                 console.error('User data structure:', userData);
                 console.error('garage_id found:', garageId);
+                console.error('Available fields:', Object.keys(userData));
+                if (userData.garage) {
+                    console.error('Garage fields:', Object.keys(userData.garage));
+                }
                 return;
             }
             
