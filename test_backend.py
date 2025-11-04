@@ -8,9 +8,11 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 from database_manager import DatabaseManager
+from rbac_permissions import RBACManager, require_permission, require_role, get_permissions_for_role, ROLE_HIERARCHY
 
 # Initialize database manager
 db_manager = DatabaseManager()
+rbac = RBACManager()
 
 app = Flask(__name__)
 
@@ -40,11 +42,47 @@ def health():
     
     return jsonify({
         'status': 'healthy',
-        'message': 'Render backend is running!',
-        'timestamp': '2025-11-03-22-45',
+        'message': 'Render backend is running with RBAC!',
+        'timestamp': '2025-11-04-07-45',
         'database_status': db_status,
-        'database_folder': 'databases/'
+        'database_folder': 'databases/',
+        'rbac_enabled': True
     })
+
+@app.route('/api/rbac/permissions/<role>', methods=['GET'])
+def get_role_permissions(role):
+    """Get all permissions for a specific role"""
+    try:
+        permissions = get_permissions_for_role(role)
+        return jsonify(permissions)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/api/rbac/roles', methods=['GET'])
+def get_all_roles():
+    """Get all available roles and their hierarchy"""
+    return jsonify({
+        'roles': ROLE_HIERARCHY,
+        'success': True
+    })
+
+@app.route('/api/rbac/check-permission', methods=['POST'])
+def check_permission():
+    """Check if a role has a specific permission"""
+    try:
+        data = request.get_json()
+        role = data.get('role')
+        permission = data.get('permission')
+        
+        has_perm = rbac.has_permission(role, permission)
+        
+        return jsonify({
+            'role': role,
+            'permission': permission,
+            'has_permission': has_perm
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
 def login():
@@ -71,8 +109,13 @@ def login():
             # Get trial status for this garage
             trial_status = db_manager.get_trial_status(user_info['garage_id'])
             
+            # Get user permissions based on role
+            user_permissions = rbac.get_role_permissions(user_info['role'])
+            role_info = ROLE_HIERARCHY.get(user_info['role'], {})
+            
             print(f"✅ Login successful: {user_info['name']} ({user_info['garage_name']})")
             print(f"📁 Database: garage_{user_info['garage_id']}.db")
+            print(f"🔐 Role: {user_info['role']} ({len(user_permissions)} permissions)")
             
             return jsonify({
                 'success': True,
@@ -81,14 +124,18 @@ def login():
                     'id': user_info['user_id'],
                     'email': user_info['email'],
                     'name': user_info['name'],
-                    'role': user_info['role']
+                    'role': user_info['role'],
+                    'role_name': role_info.get('name', user_info['role']),
+                    'role_icon': role_info.get('icon', '👤')
                 },
                 'garage': {
                     'id': user_info['garage_id'],
                     'name': user_info['garage_name'],
                     'currency': 'AED'
                 },
-                'trial': trial_status
+                'trial': trial_status,
+                'permissions': user_permissions,
+                'rbac_enabled': True
             })
         else:
             print(f"❌ Login failed: Invalid credentials for {email}")
