@@ -400,28 +400,39 @@ def register():
 
 def create_demo_accounts():
     """Create demo accounts if they don't exist"""
-    try:
-        # Check if demo account exists
-        demo_email = 'owner@garage.com'
-        user_info = db_manager.verify_login(demo_email, 'garage123')
-        
-        if not user_info:
-            print("📝 Creating demo account...")
-            demo_garage = {
-                'garage_name': 'Demo Garage',
-                'owner_name': 'Demo Owner',
-                'email': demo_email,
-                'phone': '+971501234567',
-                'password': 'garage123',
-                'trial_days': 14
-            }
-            result = db_manager.create_garage_database(demo_garage)
-            print(f"✅ Demo account created: {demo_email} / garage123")
-            print(f"📁 Database: {result['database_name']}")
-        else:
-            print(f"✅ Demo account already exists: {demo_email}")
-    except Exception as e:
-        print(f"⚠️ Error creating demo account: {e}")
+    demo_accounts = [
+        {
+            'garage_name': 'Demo Garage - Owner',
+            'owner_name': 'Garage Owner',
+            'email': 'owner@garage.com',
+            'phone': '+971501234567',
+            'password': 'garage123',
+            'trial_days': 14
+        },
+        {
+            'garage_name': 'Demo Garage - Admin',
+            'owner_name': 'System Admin',
+            'email': 'admin@garage.com',
+            'phone': '+971501234568',
+            'password': 'admin123',
+            'trial_days': 14
+        }
+    ]
+    
+    for demo_garage in demo_accounts:
+        try:
+            demo_email = demo_garage['email']
+            user_info = db_manager.verify_login(demo_email, demo_garage['password'])
+            
+            if not user_info:
+                print(f"📝 Creating demo account: {demo_email}...")
+                result = db_manager.create_garage_database(demo_garage)
+                print(f"✅ Demo account created: {demo_email} / {demo_garage['password']}")
+                print(f"📁 Database: {result['database_name']}")
+            else:
+                print(f"✅ Demo account already exists: {demo_email}")
+        except Exception as e:
+            print(f"⚠️ Error creating demo account {demo_email}: {e}")
 
 if __name__ == '__main__':
     # Create demo accounts on startup
