@@ -577,6 +577,79 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error updating garage info: {e}")
             return False
+    
+    def update_user_info(self, garage_id, user_id, data):
+        """Update user information in garage database"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Build update query dynamically
+            updates = []
+            values = []
+            
+            if 'name' in data:
+                updates.append('name = ?')
+                values.append(data['name'])
+            if 'email' in data:
+                updates.append('email = ?')
+                values.append(data['email'])
+            if 'role' in data:
+                updates.append('role = ?')
+                values.append(data['role'])
+            if 'phone' in data:
+                updates.append('phone = ?')
+                values.append(data['phone'])
+            
+            if updates:
+                values.append(user_id)
+                query = f"UPDATE users SET {', '.join(updates)} WHERE id = ?"
+                cursor.execute(query, values)
+                conn.commit()
+            
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error updating user info: {e}")
+            return False
+    
+    def create_user_in_garage(self, garage_id, user_data):
+        """Create a new user in a specific garage database"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            import hashlib
+            password_hash = hashlib.sha256(user_data['password'].encode()).hexdigest()
+            
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO users (name, email, password_hash, role, phone, is_active, created_at)
+                VALUES (?, ?, ?, ?, ?, 1, ?)
+            ''', (
+                user_data['name'],
+                user_data['email'],
+                password_hash,
+                user_data['role'],
+                user_data.get('phone', ''),
+                datetime.now().isoformat()
+            ))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            return False
 
 
 # Example usage

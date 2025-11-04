@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Garage Management System</title>
+    <title>Admin Dashboard v2.0 - Garage Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -403,6 +403,7 @@
             <div class="logo">
                 <i class="fas fa-shield-halved"></i>
                 <span>Admin Dashboard</span>
+                <span style="font-size: 0.75rem; color: #10b981; margin-left: 0.5rem; background: rgba(16, 185, 129, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px;">v2.0</span>
             </div>
             <div class="user-menu">
                 <button class="refresh-btn" onclick="refreshDashboard()">
@@ -993,9 +994,52 @@
         }
 
         // Edit Garage
-        function editGarage(garageId) {
-            alert(`Edit Garage: ${garageId}\n\nThis will open a form to edit garage details.\n\n(Feature coming soon)`);
-            // TODO: Implement edit garage modal
+        async function editGarage(garageId) {
+            const garage = allGarages.find(g => g.garage_id === garageId);
+            if (!garage) {
+                alert('Garage not found!');
+                return;
+            }
+
+            const garageName = prompt(`Edit Garage Name:\n\nCurrent: ${garage.garage_name}`, garage.garage_name);
+            if (!garageName || garageName === garage.garage_name) return;
+
+            const ownerName = prompt(`Edit Owner Name:\n\nCurrent: ${garage.owner_name}`, garage.owner_name);
+            if (!ownerName) return;
+
+            const email = prompt(`Edit Email:\n\nCurrent: ${garage.email}`, garage.email);
+            if (!email) return;
+
+            const phone = prompt(`Edit Phone:\n\nCurrent: ${garage.phone || 'N/A'}`, garage.phone || '');
+
+            if (confirm(`Update garage details?\n\nName: ${garageName}\nOwner: ${ownerName}\nEmail: ${email}\nPhone: ${phone}`)) {
+                try {
+                    const response = await fetch(`${api.baseURL}/admin/garages/${garageId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            garage_name: garageName,
+                            owner_name: ownerName,
+                            email: email,
+                            phone: phone
+                        })
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ Garage updated successfully!`);
+                        await refreshDashboard();
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to update garage: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error updating garage:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
         }
 
         // Reset Password
@@ -1033,15 +1077,113 @@
         }
 
         // Edit User
-        function editUser(garageId, userId) {
-            alert(`Edit User: ${userId}\n\nThis will open a form to edit user details.\n\n(Feature coming soon)`);
-            // TODO: Implement edit user modal
+        async function editUser(garageId, userId) {
+            const user = allUsers.find(u => u.id === userId && u.garage_id === garageId);
+            if (!user) {
+                alert('User not found!');
+                return;
+            }
+
+            const name = prompt(`Edit User Name:\n\nCurrent: ${user.name}`, user.name);
+            if (!name || name === user.name) return;
+
+            const email = prompt(`Edit Email:\n\nCurrent: ${user.email}`, user.email);
+            if (!email) return;
+
+            const role = prompt(`Edit Role:\n\nCurrent: ${user.role}\n\nOptions: admin, garage_owner, staff, customer`, user.role);
+            if (!role) return;
+
+            if (confirm(`Update user details?\n\nName: ${name}\nEmail: ${email}\nRole: ${role}`)) {
+                try {
+                    // Note: This endpoint needs to be added to backend
+                    const response = await fetch(`${api.baseURL}/admin/users/${garageId}/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            role: role
+                        })
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ User updated successfully!`);
+                        await refreshDashboard();
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to update user: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error updating user:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
         }
 
         // Create New User Modal
-        function showCreateUserModal() {
-            alert(`Create New User\n\nThis will open a form to create a new user.\n\nFeatures:\n- Set name, email, role\n- Assign to garage\n- Set initial password\n- Configure permissions\n\n(Feature coming soon)`);
-            // TODO: Implement create user modal
+        async function showCreateUserModal() {
+            // Get garage selection
+            const garageOptions = allGarages.map(g => `${g.garage_id}: ${g.garage_name}`).join('\n');
+            const garageId = prompt(`Create New User\n\nSelect Garage ID:\n\n${garageOptions}\n\nEnter Garage ID:`);
+            if (!garageId) return;
+
+            const garage = allGarages.find(g => g.garage_id === garageId);
+            if (!garage) {
+                alert('❌ Invalid Garage ID!');
+                return;
+            }
+
+            // Get user details
+            const name = prompt(`User Name:`, '');
+            if (!name) return;
+
+            const email = prompt(`Email Address:`, '');
+            if (!email || !email.includes('@')) {
+                alert('❌ Invalid email address!');
+                return;
+            }
+
+            const role = prompt(`Role:\n\nOptions:\n- admin\n- garage_owner\n- staff\n- customer\n\nEnter role:`, 'staff');
+            if (!role) return;
+
+            const password = prompt(`Password (min 8 characters):`, '');
+            if (!password || password.length < 8) {
+                alert('❌ Password must be at least 8 characters!');
+                return;
+            }
+
+            if (confirm(`Create new user?\n\nGarage: ${garage.garage_name}\nName: ${name}\nEmail: ${email}\nRole: ${role}\nPassword: ${password}`)) {
+                try {
+                    // Note: This endpoint needs to be added to backend
+                    const response = await fetch(`${api.baseURL}/admin/users/${garageId}/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            role: role,
+                            password: password
+                        })
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ User created successfully!\n\nEmail: ${email}\nPassword: ${password}\n\nPlease share credentials securely.`);
+                        await refreshDashboard();
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to create user: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error creating user:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
         }
 
         // Refresh dashboard

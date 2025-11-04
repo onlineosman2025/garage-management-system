@@ -656,6 +656,46 @@ def admin_update_garage(garage_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/admin/users/<garage_id>/<int:user_id>', methods=['PUT'])
+def admin_update_user(garage_id, user_id):
+    """Admin endpoint to update user details"""
+    try:
+        data = request.json
+        success = db_manager.update_user_info(garage_id, user_id, data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'User updated successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to update user'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/users/<garage_id>/create', methods=['POST'])
+def admin_create_user(garage_id):
+    """Admin endpoint to create new user in garage"""
+    try:
+        data = request.json
+        required_fields = ['name', 'email', 'password', 'role']
+        
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        success = db_manager.create_user_in_garage(garage_id, data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'User created successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to create user'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def create_demo_accounts():
     """Create demo accounts if they don't exist"""
     demo_accounts = [
