@@ -369,12 +369,8 @@
 
     <script>
         function selectPlan(planName, price) {
-            if (confirm(`Upgrade to ${planName.charAt(0).toUpperCase() + planName.slice(1)} plan for $${price}/month?\n\nThis is a demo. In production, this would redirect to payment gateway.`)) {
-                alert(`🎉 Thank you for choosing ${planName.charAt(0).toUpperCase() + planName.slice(1)}!\n\nIn production, you would be redirected to:\n✓ Stripe/PayPal payment\n✓ Complete billing information\n✓ Instant account upgrade\n\nFor now, enjoy exploring the system!`);
-                
-                // In production, redirect to payment gateway:
-                // window.location.href = `/checkout?plan=${planName}&price=${price}`;
-            }
+            // Redirect to checkout page
+            window.location.href = `/checkout.html?plan=${planName}&price=${price}`;
         }
     </script>
 </body>

@@ -1134,6 +1134,15 @@
             const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
             const garageData = userData.garage || {};
             
+            // Check if account is upgraded (has active subscription)
+            if (garageData.subscription_plan && garageData.subscription_plan !== 'trial') {
+                // Hide both banners for upgraded accounts
+                document.getElementById('trialBanner').style.display = 'none';
+                document.getElementById('expiredBanner').style.display = 'none';
+                console.log('✅ Account is upgraded to:', garageData.subscription_plan);
+                return;
+            }
+            
             // Get trial dates
             const trialStartDate = garageData.created_at ? new Date(garageData.created_at) : new Date();
             const trialEndDate = garageData.trial_end_date ? new Date(garageData.trial_end_date) : new Date(trialStartDate.getTime() + (14 * 24 * 60 * 60 * 1000));

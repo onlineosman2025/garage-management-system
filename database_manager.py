@@ -686,6 +686,202 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error creating user: {e}")
             return False
+    
+    def save_payment(self, payment_data):
+        """Save payment record"""
+        garage_id = payment_data['garage_id']
+        db_path = self.get_database_path(garage_id)
+        
+        if not os.path.exists(db_path):
+            print(f"Database not found for garage: {garage_id}")
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Check if payments table exists, if not create it
+            cursor.execute("PRAGMA table_info(payments)")
+            if not cursor.fetchall():
+                cursor.execute('''
+                    CREATE TABLE payments (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        payment_method TEXT NOT NULL,
+                        payment_id TEXT,
+                        reference_number TEXT,
+                        plan TEXT NOT NULL,
+                        amount REAL NOT NULL,
+                        total REAL NOT NULL,
+                        status TEXT NOT NULL,
+                        receipt_filename TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        verified_at TIMESTAMP
+                    )
+                ''')
+            
+            # Insert payment record
+            cursor.execute('''
+                INSERT INTO payments (
+                    payment_method, payment_id, reference_number, plan, 
+                    amount, total, status, receipt_filename
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                payment_data['payment_method'],
+                payment_data.get('payment_id'),
+                payment_data.get('reference_number'),
+                payment_data['plan'],
+                payment_data['amount'],
+                payment_data['total'],
+                payment_data['status'],
+                payment_data.get('receipt_filename')
+            ))
+            
+            conn.commit()
+            conn.close()
+            
+            print(f"✅ Payment saved: {garage_id} - {payment_data['plan']}")
+            return True
+            
+        except Exception as e:
+            print(f"Error saving payment: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def upgrade_account(self, garage_id, plan):
+        """Upgrade account from trial to paid"""
+        db_path = self.get_database_path(garage_id)
+        
+        if not os.path.exists(db_path):
+            print(f"Database not found for garage: {garage_id}")
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Update trial_info table
+            cursor.execute('''
+                UPDATE trial_info 
+                SET is_active = 0,
+                    upgraded_at = ?,
+                    subscription_plan = ?
+                WHERE garage_id = ?
+            ''', (datetime.now().isoformat(), plan, garage_id))
+            
+            # Check if subscription table exists, if not create it
+            cursor.execute("PRAGMA table_info(subscription)")
+            if not cursor.fetchall():
+                cursor.execute('''
+                    CREATE TABLE subscription (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        plan TEXT NOT NULL,
+                        status TEXT DEFAULT 'active',
+                        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP,
+                        auto_renew BOOLEAN DEFAULT 1
+                    )
+                ''')
+            
+            # Insert subscription record
+            cursor.execute('''
+                INSERT INTO subscription (plan, status)
+                VALUES (?, 'active')
+            ''', (plan,))
+            
+            conn.commit()
+            conn.close()
+            
+            print(f"✅ Account upgraded: {garage_id} to {plan}")
+            return True
+            
+        except Exception as e:
+            print(f"Error upgrading account: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def get_payment_by_reference(self, reference_number):
+        """Get payment details by reference number"""
+        # Search all garage databases for the payment
+        for garage_id in self._get_all_garage_ids():
+            db_path = self.get_database_path(garage_id)
+            
+            if not os.path.exists(db_path):
+                continue
+            
+            try:
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT * FROM payments 
+                    WHERE reference_number = ?
+                ''', (reference_number,))
+                
+                row = cursor.fetchone()
+                conn.close()
+                
+                if row:
+                    return {
+                        'id': row[0],
+                        'garage_id': garage_id,
+                        'payment_method': row[1],
+                        'payment_id': row[2],
+                        'reference_number': row[3],
+                        'plan': row[4],
+                        'amount': row[5],
+                        'total': row[6],
+                        'status': row[7],
+                        'receipt_filename': row[8],
+                        'created_at': row[9],
+                        'verified_at': row[10] if len(row) > 10 else None
+                    }
+            except:
+                pass
+        
+        return None
+    
+    def update_payment_status(self, reference_number, status):
+        """Update payment status"""
+        # Search all garage databases for the payment
+        for garage_id in self._get_all_garage_ids():
+            db_path = self.get_database_path(garage_id)
+            
+            if not os.path.exists(db_path):
+                continue
+            
+            try:
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    UPDATE payments 
+                    SET status = ?,
+                        verified_at = ?
+                    WHERE reference_number = ?
+                ''', (status, datetime.now().isoformat(), reference_number))
+                
+                if cursor.rowcount > 0:
+                    conn.commit()
+                    conn.close()
+                    print(f"✅ Payment status updated: {reference_number} -> {status}")
+                    return True
+                
+                conn.close()
+            except:
+                pass
+        
+        return False
+    
+    def _get_all_garage_ids(self):
+        """Get list of all garage IDs"""
+        garage_ids = []
+        for filename in os.listdir(self.base_path):
+            if filename.startswith('garage_') and filename.endswith('.db'):
+                garage_id = filename.replace('garage_', '').replace('.db', '')
+                garage_ids.append(garage_id)
+        return garage_ids
 
 
 # Example usage

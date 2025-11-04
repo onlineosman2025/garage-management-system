@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Garage Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 1.5rem;
+            color: #1a202c;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .order-summary {
+            background: #f7fafc;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: #4a5568;
+        }
+
+        .summary-row.total {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FF6600;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .plan-details {
+            background: linear-gradient(135deg, #FF6600 0%, #ff8533 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .plan-details h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-details p {
+            opacity: 0.9;
+        }
+
+        .payment-method {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-method:hover {
+            border-color: #FF6600;
+            background: #fff5f0;
+        }
+
+        .payment-method.selected {
+            border-color: #FF6600;
+            background: #fff5f0;
+        }
+
+        .payment-method input[type="radio"] {
+            margin-right: 1rem;
+        }
+
+        .payment-method-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .payment-icon {
+            font-size: 2rem;
+        }
+
+        .payment-info h4 {
+            margin-bottom: 0.25rem;
+            color: #1a202c;
+        }
+
+        .payment-info p {
+            color: #718096;
+            font-size: 0.875rem;
+        }
+
+        .paypal-section,
+        .cash-section {
+            display: none;
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f7fafc;
+            border-radius: 12px;
+        }
+
+        .paypal-section.active,
+        .cash-section.active {
+            display: block;
+        }
+
+        #paypal-button-container {
+            margin-top: 1rem;
+        }
+
+        .cash-instructions {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .cash-instructions h4 {
+            color: #1a202c;
+            margin-bottom: 1rem;
+        }
+
+        .cash-instructions ol {
+            margin-left: 1.5rem;
+            color: #4a5568;
+        }
+
+        .cash-instructions ol li {
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-section {
+            margin-top: 1.5rem;
+        }
+
+        .upload-section label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #FF6600;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #FF6600 0%, #ff8533 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            display: none;
+            background: #10b981;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/upgrade.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Plans
+        </a>
+
+        <div class="checkout-grid">
+            <!-- Order Summary -->
+            <div class="card">
+                <h2><i class="fas fa-shopping-cart"></i> Order Summary</h2>
+                
+                <div class="plan-details">
+                    <h3 id="planName">Professional Plan</h3>
+                    <p>Billed monthly, cancel anytime</p>
+                </div>
+
+                <div class="order-summary">
+                    <div class="summary-row">
+                        <span>Plan Price</span>
+                        <span id="planPrice">$79.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (5% UAE VAT)</span>
+                        <span id="taxAmount">$3.95</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total</span>
+                        <span id="totalAmount">$82.95</span>
+                    </div>
+                </div>
+
+                <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; color: #856404;">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Note:</strong> Your trial will be upgraded immediately after payment confirmation.
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="card">
+                <h2><i class="fas fa-credit-card"></i> Payment Method</h2>
+
+                <!-- PayPal Option -->
+                <div class="payment-method" onclick="selectPaymentMethod('paypal')">
+                    <div class="payment-method-content">
+                        <input type="radio" name="payment" id="paypal-radio" value="paypal">
+                        <div class="payment-icon">
+                            <i class="fab fa-paypal" style="color: #0070ba;"></i>
+                        </div>
+                        <div class="payment-info">
+                            <h4>PayPal</h4>
+                            <p>Pay securely with PayPal</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="paypal-section" id="paypal-section">
+                    <p style="color: #4a5568; margin-bottom: 1rem;">
+                        Click the PayPal button below to complete your payment securely.
+                    </p>
+                    <div id="paypal-button-container"></div>
+                </div>
+
+                <!-- Cash Payment Option -->
+                <div class="payment-method" onclick="selectPaymentMethod('cash')">
+                    <div class="payment-method-content">
+                        <input type="radio" name="payment" id="cash-radio" value="cash">
+                        <div class="payment-icon">
+                            <i class="fas fa-money-bill-wave" style="color: #10b981;"></i>
+                        </div>
+                        <div class="payment-info">
+                            <h4>Cash Payment</h4>
+                            <p>Pay via bank transfer or cash deposit</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cash-section" id="cash-section">
+                    <div class="cash-instructions">
+                        <h4>Payment Instructions:</h4>
+                        <ol>
+                            <li>Transfer to: <strong>Bank Name</strong></li>
+                            <li>Account Number: <strong>1234567890</strong></li>
+                            <li>Account Name: <strong>Garage Management System</strong></li>
+                            <li>Amount: <strong id="cashAmount">$82.95</strong></li>
+                            <li>Reference: <strong id="referenceNumber">Loading...</strong></li>
+                        </ol>
+                    </div>
+
+                    <div class="upload-section">
+                        <label for="receipt-upload">
+                            <i class="fas fa-upload"></i> Upload Payment Receipt
+                        </label>
+                        <div class="file-input" onclick="document.getElementById('receipt-file').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #cbd5e0; display: block; margin-bottom: 0.5rem;"></i>
+                            <span id="file-name">Click to upload receipt (JPG, PNG, PDF)</span>
+                        </div>
+                        <input type="file" id="receipt-file" accept="image/*,application/pdf" onchange="handleFileSelect(event)">
+                    </div>
+
+                    <button class="submit-btn" id="submit-cash" onclick="submitCashPayment()" disabled>
+                        <i class="fas fa-check"></i> Submit Payment Proof
+                    </button>
+                </div>
+
+                <div class="success-message" id="success-message">
+                    <i class="fas fa-check-circle" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                    <h3>Payment Submitted!</h3>
+                    <p id="success-text">Your payment is being processed...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        const api = new GarageAPI();
+        let selectedFile = null;
+        let selectedPlan = 'professional';
+        let planPrice = 79;
+
+        // Get plan from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const plan = urlParams.get('plan') || 'professional';
+        const price = parseFloat(urlParams.get('price')) || 79;
+
+        selectedPlan = plan;
+        planPrice = price;
+
+        // Update UI with plan details
+        document.getElementById('planName').textContent = plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
+        document.getElementById('planPrice').textContent = '$' + price.toFixed(2);
+        
+        const tax = price * 0.05; // 5% VAT
+        const total = price + tax;
+        
+        document.getElementById('taxAmount').textContent = '$' + tax.toFixed(2);
+        document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+        document.getElementById('cashAmount').textContent = '$' + total.toFixed(2);
+
+        // Generate reference number
+        const referenceNumber = 'GMS-' + Date.now().toString().slice(-8);
+        document.getElementById('referenceNumber').textContent = referenceNumber;
+
+        // Payment method selection
+        function selectPaymentMethod(method) {
+            document.querySelectorAll('.payment-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.payment-method input[type="radio"]').forEach(el => {
+                el.checked = false;
+            });
+
+            if (method === 'paypal') {
+                document.getElementById('paypal-radio').checked = true;
+                document.querySelector('.payment-method:has(#paypal-radio)').classList.add('selected');
+                document.getElementById('paypal-section').classList.add('active');
+                document.getElementById('cash-section').classList.remove('active');
+                initPayPalButton();
+            } else if (method === 'cash') {
+                document.getElementById('cash-radio').checked = true;
+                document.querySelector('.payment-method:has(#cash-radio)').classList.add('selected');
+                document.getElementById('cash-section').classList.add('active');
+                document.getElementById('paypal-section').classList.remove('active');
+            }
+        }
+
+        // PayPal Integration
+        function initPayPalButton() {
+            // Clear existing button
+            document.getElementById('paypal-button-container').innerHTML = '';
+
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: (planPrice + (planPrice * 0.05)).toFixed(2),
+                                currency_code: 'USD'
+                            },
+                            description: selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1) + ' Plan - Monthly Subscription'
+                        }]
+                    });
+                },
+                onApprove: async function(data, actions) {
+                    const order = await actions.order.capture();
+                    console.log('PayPal order captured:', order);
+                    await processPayPalPayment(order);
+                },
+                onError: function(err) {
+                    console.error('PayPal error:', err);
+                    alert('❌ Payment failed. Please try again.');
+                }
+            }).render('#paypal-button-container');
+        }
+
+        // Process PayPal payment
+        async function processPayPalPayment(order) {
+            try {
+                const userData = JSON.parse(localStorage.getItem('user_data'));
+                const garageId = userData.garage.garage_id;
+
+                const response = await fetch(`${api.baseURL}/payment/process`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        garage_id: garageId,
+                        payment_method: 'paypal',
+                        payment_id: order.id,
+                        plan: selectedPlan,
+                        amount: planPrice,
+                        tax: planPrice * 0.05,
+                        total: planPrice + (planPrice * 0.05),
+                        order_details: order
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showSuccess('PayPal payment processed successfully! Your account has been upgraded.');
+                    setTimeout(() => {
+                        window.location.href = '/garage-dashboard.html';
+                    }, 3000);
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Payment processing failed'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error processing payment. Please contact support.');
+            }
+        }
+
+        // Handle file selection
+        function handleFileSelect(event) {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                document.getElementById('file-name').textContent = selectedFile.name;
+                document.getElementById('submit-cash').disabled = false;
+            }
+        }
+
+        // Submit cash payment
+        async function submitCashPayment() {
+            if (!selectedFile) {
+                alert('❌ Please upload payment receipt');
+                return;
+            }
+
+            const formData = new FormData();
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+            const garageId = userData.garage.garage_id;
+
+            formData.append('garage_id', garageId);
+            formData.append('payment_method', 'cash');
+            formData.append('reference_number', referenceNumber);
+            formData.append('plan', selectedPlan);
+            formData.append('amount', planPrice);
+            formData.append('tax', planPrice * 0.05);
+            formData.append('total', planPrice + (planPrice * 0.05));
+            formData.append('receipt', selectedFile);
+
+            try {
+                document.getElementById('submit-cash').disabled = true;
+                document.getElementById('submit-cash').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+                const response = await fetch(`${api.baseURL}/payment/cash`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showSuccess('Payment proof submitted! Your payment is pending verification. We will upgrade your account within 24 hours.');
+                    setTimeout(() => {
+                        window.location.href = '/garage-dashboard.html';
+                    }, 5000);
+                } else {
+                    alert('❌ Error: ' + (result.error || 'Submission failed'));
+                    document.getElementById('submit-cash').disabled = false;
+                    document.getElementById('submit-cash').innerHTML = '<i class="fas fa-check"></i> Submit Payment Proof';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error submitting payment. Please try again.');
+                document.getElementById('submit-cash').disabled = false;
+                document.getElementById('submit-cash').innerHTML = '<i class="fas fa-check"></i> Submit Payment Proof';
+            }
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            document.getElementById('success-text').textContent = message;
+            document.getElementById('success-message').classList.add('show');
+        }
+    </script>
+</body>
+</html>

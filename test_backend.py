@@ -732,6 +732,150 @@ def create_demo_accounts():
         except Exception as e:
             print(f"⚠️ Error creating demo account {demo_email}: {e}")
 
+# ===== PAYMENT ENDPOINTS =====
+
+@app.route('/api/payment/process', methods=['POST'])
+def process_payment():
+    """Process PayPal payment and upgrade account"""
+    try:
+        data = request.json
+        garage_id = data.get('garage_id')
+        payment_method = data.get('payment_method')
+        payment_id = data.get('payment_id')
+        plan = data.get('plan')
+        amount = data.get('amount')
+        total = data.get('total')
+        
+        print(f"💳 Processing payment: {garage_id} - {plan} - ${total}")
+        
+        # Save payment record
+        payment_data = {
+            'garage_id': garage_id,
+            'payment_method': payment_method,
+            'payment_id': payment_id,
+            'plan': plan,
+            'amount': amount,
+            'total': total,
+            'status': 'completed',
+            'order_details': data.get('order_details')
+        }
+        
+        success = db_manager.save_payment(payment_data)
+        
+        if success:
+            # Upgrade account
+            upgrade_success = db_manager.upgrade_account(garage_id, plan)
+            
+            if upgrade_success:
+                print(f"✅ Account upgraded: {garage_id} to {plan}")
+                return jsonify({
+                    'success': True,
+                    'message': 'Payment processed and account upgraded successfully!'
+                })
+            else:
+                return jsonify({'error': 'Failed to upgrade account'}), 500
+        else:
+            return jsonify({'error': 'Failed to save payment'}), 500
+            
+    except Exception as e:
+        print(f"Error processing payment: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/payment/cash', methods=['POST'])
+def process_cash_payment():
+    """Process cash payment with receipt upload"""
+    try:
+        garage_id = request.form.get('garage_id')
+        payment_method = request.form.get('payment_method')
+        reference_number = request.form.get('reference_number')
+        plan = request.form.get('plan')
+        amount = request.form.get('amount')
+        total = request.form.get('total')
+        
+        # Handle file upload
+        receipt_file = request.files.get('receipt')
+        receipt_filename = None
+        
+        if receipt_file:
+            # Save receipt file
+            upload_folder = os.path.join(os.path.dirname(__file__), 'uploads', 'receipts')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            receipt_filename = f"{garage_id}_{reference_number}_{receipt_file.filename}"
+            receipt_path = os.path.join(upload_folder, receipt_filename)
+            receipt_file.save(receipt_path)
+            print(f"📄 Receipt saved: {receipt_filename}")
+        
+        print(f"💵 Cash payment submitted: {garage_id} - {plan} - ${total}")
+        
+        # Save payment record (pending verification)
+        payment_data = {
+            'garage_id': garage_id,
+            'payment_method': payment_method,
+            'reference_number': reference_number,
+            'plan': plan,
+            'amount': amount,
+            'total': total,
+            'status': 'pending',
+            'receipt_filename': receipt_filename
+        }
+        
+        success = db_manager.save_payment(payment_data)
+        
+        if success:
+            print(f"✅ Cash payment recorded: {reference_number}")
+            return jsonify({
+                'success': True,
+                'message': 'Payment proof submitted successfully! We will verify and upgrade your account within 24 hours.',
+                'reference_number': reference_number
+            })
+        else:
+            return jsonify({'error': 'Failed to save payment'}), 500
+            
+    except Exception as e:
+        print(f"Error processing cash payment: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/payment/verify/<reference_number>', methods=['POST'])
+def verify_cash_payment(reference_number):
+    """Admin endpoint to verify cash payment and upgrade account"""
+    try:
+        data = request.json
+        approved = data.get('approved', False)
+        
+        if approved:
+            # Get payment details
+            payment = db_manager.get_payment_by_reference(reference_number)
+            
+            if payment:
+                # Upgrade account
+                upgrade_success = db_manager.upgrade_account(payment['garage_id'], payment['plan'])
+                
+                if upgrade_success:
+                    # Update payment status
+                    db_manager.update_payment_status(reference_number, 'completed')
+                    print(f"✅ Cash payment verified and account upgraded: {reference_number}")
+                    
+                    return jsonify({
+                        'success': True,
+                        'message': 'Payment verified and account upgraded!'
+                    })
+                else:
+                    return jsonify({'error': 'Failed to upgrade account'}), 500
+            else:
+                return jsonify({'error': 'Payment not found'}), 404
+        else:
+            # Reject payment
+            db_manager.update_payment_status(reference_number, 'rejected')
+            return jsonify({
+                'success': True,
+                'message': 'Payment rejected'
+            })
+            
+    except Exception as e:
+        print(f"Error verifying payment: {e}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     # Create demo accounts on startup
     create_demo_accounts()
