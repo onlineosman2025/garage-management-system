@@ -533,11 +533,16 @@
                     <i class="fas fa-users-cog"></i>
                     All System Users
                 </h2>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" onclick="filterUsers('all')">All</button>
-                    <button class="filter-btn" onclick="filterUsers('admin')">Admins</button>
-                    <button class="filter-btn" onclick="filterUsers('owner')">Owners</button>
-                    <button class="filter-btn" onclick="filterUsers('active')">Active</button>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <button class="btn-primary" onclick="showCreateUserModal()" style="padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">
+                        <i class="fas fa-user-plus"></i> Create New User
+                    </button>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterUsers('all')">All</button>
+                        <button class="filter-btn" onclick="filterUsers('admin')">Admins</button>
+                        <button class="filter-btn" onclick="filterUsers('owner')">Owners</button>
+                        <button class="filter-btn" onclick="filterUsers('active')">Active</button>
+                    </div>
                 </div>
             </div>
             <div class="table-container">
@@ -766,6 +771,18 @@
                                 <button class="btn-sm btn-primary" onclick="viewGarage('${garage.garage_id}')">
                                     <i class="fas fa-eye"></i> View
                                 </button>
+                                <button class="btn-sm btn-warning" onclick="suspendGarage('${garage.garage_id}', '${garage.garage_name}')">
+                                    <i class="fas fa-pause"></i> Suspend
+                                </button>
+                                <button class="btn-sm btn-success" onclick="activateGarage('${garage.garage_id}', '${garage.garage_name}')">
+                                    <i class="fas fa-play"></i> Activate
+                                </button>
+                                <button class="btn-sm btn-info" onclick="extendTrial('${garage.garage_id}', '${garage.garage_name}')">
+                                    <i class="fas fa-clock"></i> Extend
+                                </button>
+                                <button class="btn-sm btn-secondary" onclick="editGarage('${garage.garage_id}')">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -812,6 +829,12 @@
                             <div class="action-btns">
                                 <button class="btn-sm btn-primary" onclick="viewUser(${user.id})">
                                     <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="btn-sm btn-warning" onclick="resetPassword('${user.garage_id}', ${user.id}, '${user.name}')">
+                                    <i class="fas fa-key"></i> Reset Password
+                                </button>
+                                <button class="btn-sm btn-secondary" onclick="editUser('${user.garage_id}', ${user.id})">
+                                    <i class="fas fa-edit"></i> Edit
                                 </button>
                             </div>
                         </td>
@@ -879,6 +902,146 @@
         function viewUser(userId) {
             alert(`Viewing user: ${userId}\n\nThis will open detailed user information.`);
             // TODO: Implement user detail view
+        }
+
+        // ===== PROFESSIONAL ADMIN ACTIONS =====
+
+        // Suspend Garage
+        async function suspendGarage(garageId, garageName) {
+            const reason = prompt(`Suspend "${garageName}"?\n\nEnter reason for suspension:`);
+            if (!reason) return;
+
+            if (confirm(`Are you sure you want to suspend "${garageName}"?\n\nReason: ${reason}`)) {
+                try {
+                    const response = await fetch(`${api.baseURL}/admin/garages/${garageId}/suspend`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({ reason })
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ Garage "${garageName}" suspended successfully!`);
+                        await refreshDashboard();
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to suspend garage: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error suspending garage:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
+        }
+
+        // Activate Garage
+        async function activateGarage(garageId, garageName) {
+            if (confirm(`Activate "${garageName}"?\n\nThis will reactivate the garage and allow access.`)) {
+                try {
+                    const response = await fetch(`${api.baseURL}/admin/garages/${garageId}/activate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ Garage "${garageName}" activated successfully!`);
+                        await refreshDashboard();
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to activate garage: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error activating garage:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
+        }
+
+        // Extend Trial
+        async function extendTrial(garageId, garageName) {
+            const days = prompt(`Extend trial for "${garageName}"?\n\nEnter number of days to add:`, '14');
+            if (!days || isNaN(days)) return;
+
+            if (confirm(`Extend trial for "${garageName}" by ${days} days?`)) {
+                try {
+                    const response = await fetch(`${api.baseURL}/admin/garages/${garageId}/extend-trial`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({ days: parseInt(days) })
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ Trial extended by ${days} days for "${garageName}"!`);
+                        await refreshDashboard();
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to extend trial: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error extending trial:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
+        }
+
+        // Edit Garage
+        function editGarage(garageId) {
+            alert(`Edit Garage: ${garageId}\n\nThis will open a form to edit garage details.\n\n(Feature coming soon)`);
+            // TODO: Implement edit garage modal
+        }
+
+        // Reset Password
+        async function resetPassword(garageId, userId, userName) {
+            const newPassword = prompt(`Reset password for "${userName}"?\n\nEnter new password (min 8 characters):`, '');
+            if (!newPassword) return;
+
+            if (newPassword.length < 8) {
+                alert('❌ Password must be at least 8 characters long!');
+                return;
+            }
+
+            if (confirm(`Reset password for "${userName}"?\n\nNew password: ${newPassword}`)) {
+                try {
+                    const response = await fetch(`${api.baseURL}/admin/users/${garageId}/${userId}/reset-password`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        },
+                        body: JSON.stringify({ password: newPassword })
+                    });
+
+                    if (response.ok) {
+                        alert(`✅ Password reset successfully for "${userName}"!\n\nNew password: ${newPassword}\n\nPlease share this with the user securely.`);
+                    } else {
+                        const error = await response.json();
+                        alert(`❌ Failed to reset password: ${error.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Error resetting password:', error);
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
+        }
+
+        // Edit User
+        function editUser(garageId, userId) {
+            alert(`Edit User: ${userId}\n\nThis will open a form to edit user details.\n\n(Feature coming soon)`);
+            // TODO: Implement edit user modal
+        }
+
+        // Create New User Modal
+        function showCreateUserModal() {
+            alert(`Create New User\n\nThis will open a form to create a new user.\n\nFeatures:\n- Set name, email, role\n- Assign to garage\n- Set initial password\n- Configure permissions\n\n(Feature coming soon)`);
+            // TODO: Implement create user modal
         }
 
         // Refresh dashboard
