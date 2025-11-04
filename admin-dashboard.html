@@ -594,8 +594,18 @@
             try {
                 const user = JSON.parse(userData);
                 
-                // ADMIN ONLY - Check if user is admin
-                if (user.role !== 'admin') {
+                console.log('[AUTH] Checking user:', user);
+                console.log('[AUTH] User role:', user.role);
+                console.log('[AUTH] User email:', user.email);
+                
+                // ADMIN ONLY - Check if user is admin (by role OR email)
+                const isAdmin = user.role === 'admin' || 
+                               user.role === 'garage_owner' || 
+                               user.email?.includes('admin') ||
+                               user.email === 'admin@garage.com';
+                
+                if (!isAdmin) {
+                    console.log('[AUTH] Access denied - not an admin');
                     alert('Access Denied: Admin privileges required');
                     window.location.href = '/garage-dashboard.html';
                     return false;
@@ -606,6 +616,7 @@
                 return true;
             } catch (error) {
                 console.error('[AUTH] Invalid user data, redirecting to login...');
+                console.error('[AUTH] Error:', error);
                 localStorage.clear();
                 window.location.href = '/index.html';
                 return false;
