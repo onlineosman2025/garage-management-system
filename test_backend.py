@@ -84,6 +84,25 @@ def check_permission():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@app.route('/api/setup/create-demo-accounts', methods=['POST', 'GET'])
+def setup_demo_accounts():
+    """Manually trigger demo account creation"""
+    try:
+        create_demo_accounts()
+        garages = db_manager.list_all_garages()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Demo accounts created successfully',
+            'total_garages': len(garages),
+            'garages': garages
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
 def login():
     try:
