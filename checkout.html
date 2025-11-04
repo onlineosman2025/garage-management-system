@@ -517,19 +517,24 @@
             }
             
             // Get garage_id from different possible locations
+            // Priority: garage_id (top level) > garage.garage_id > never use numeric id
             let garageId = null;
-            if (userData.garage && userData.garage.garage_id) {
-                garageId = userData.garage.garage_id;
-            } else if (userData.garage_id) {
+            
+            // Check top-level garage_id first (from signup response)
+            if (userData.garage_id && userData.garage_id !== 1) {
                 garageId = userData.garage_id;
-            } else if (userData.id) {
-                garageId = userData.id;
+                console.log('✅ Found garage_id at top level:', garageId);
+            }
+            // Check nested garage.garage_id (from login response)
+            else if (userData.garage && userData.garage.garage_id) {
+                garageId = userData.garage.garage_id;
+                console.log('✅ Found garage_id in garage object:', garageId);
             }
             
-            if (!garageId) {
-                alert('❌ Garage ID not found. Please log in again.\n\nUser data: ' + JSON.stringify(userData));
+            if (!garageId || garageId === 1) {
+                alert('❌ Valid Garage ID not found.\n\nYou may need to log out and log in again.\n\nUser data: ' + JSON.stringify(userData, null, 2));
                 console.error('User data structure:', userData);
-                window.location.href = '/index.html';
+                console.error('garage_id found:', garageId);
                 return;
             }
             
