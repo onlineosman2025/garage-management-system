@@ -429,6 +429,154 @@ class DatabaseManager:
         except Exception as e:
             print(f"Error getting users for garage {garage_id}: {e}")
             return []
+    
+    def update_user_password(self, garage_id, user_id, new_password):
+        """Update user password in garage database"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            import hashlib
+            password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+            
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE users 
+                SET password_hash = ?
+                WHERE id = ?
+            ''', (password_hash, user_id))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error updating password: {e}")
+            return False
+    
+    def suspend_garage(self, garage_id, reason):
+        """Suspend a garage"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE garage_info 
+                SET is_active = 0, suspension_reason = ?, suspended_at = ?
+                WHERE garage_id = ?
+            ''', (reason, datetime.now().isoformat(), garage_id))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error suspending garage: {e}")
+            return False
+    
+    def activate_garage(self, garage_id):
+        """Activate a garage"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                UPDATE garage_info 
+                SET is_active = 1, suspension_reason = NULL, suspended_at = NULL
+                WHERE garage_id = ?
+            ''', (garage_id,))
+            
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error activating garage: {e}")
+            return False
+    
+    def extend_trial(self, garage_id, days):
+        """Extend trial period for a garage"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Get current trial end date
+            cursor.execute('SELECT trial_end_date FROM garage_info WHERE garage_id = ?', (garage_id,))
+            result = cursor.fetchone()
+            
+            if result:
+                current_end = datetime.fromisoformat(result[0])
+                new_end = current_end + timedelta(days=days)
+                
+                cursor.execute('''
+                    UPDATE garage_info 
+                    SET trial_end_date = ?
+                    WHERE garage_id = ?
+                ''', (new_end.isoformat(), garage_id))
+                
+                conn.commit()
+            
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error extending trial: {e}")
+            return False
+    
+    def update_garage_info(self, garage_id, data):
+        """Update garage information"""
+        db_path = os.path.join(self.base_path, f'garage_{garage_id}.db')
+        
+        if not os.path.exists(db_path):
+            return False
+        
+        try:
+            conn = sqlite3.connect(db_path)
+            cursor = conn.cursor()
+            
+            # Build update query dynamically
+            updates = []
+            values = []
+            
+            if 'garage_name' in data:
+                updates.append('garage_name = ?')
+                values.append(data['garage_name'])
+            if 'owner_name' in data:
+                updates.append('owner_name = ?')
+                values.append(data['owner_name'])
+            if 'email' in data:
+                updates.append('email = ?')
+                values.append(data['email'])
+            if 'phone' in data:
+                updates.append('phone = ?')
+                values.append(data['phone'])
+            
+            if updates:
+                values.append(garage_id)
+                query = f"UPDATE garage_info SET {', '.join(updates)} WHERE garage_id = ?"
+                cursor.execute(query, values)
+                conn.commit()
+            
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"Error updating garage info: {e}")
+            return False
 
 
 # Example usage

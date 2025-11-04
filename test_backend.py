@@ -562,6 +562,100 @@ def admin_get_stats():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/admin/users/<garage_id>/<int:user_id>/reset-password', methods=['POST'])
+def admin_reset_password(garage_id, user_id):
+    """Admin endpoint to reset user password"""
+    try:
+        data = request.json
+        new_password = data.get('password')
+        
+        if not new_password:
+            return jsonify({'error': 'Password is required'}), 400
+        
+        # Update password in garage database
+        success = db_manager.update_user_password(garage_id, user_id, new_password)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Password reset successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to reset password'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/garages/<garage_id>/suspend', methods=['POST'])
+def admin_suspend_garage(garage_id):
+    """Admin endpoint to suspend a garage"""
+    try:
+        data = request.json
+        reason = data.get('reason', 'Suspended by admin')
+        
+        success = db_manager.suspend_garage(garage_id, reason)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Garage {garage_id} suspended successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to suspend garage'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/garages/<garage_id>/activate', methods=['POST'])
+def admin_activate_garage(garage_id):
+    """Admin endpoint to activate a garage"""
+    try:
+        success = db_manager.activate_garage(garage_id)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Garage {garage_id} activated successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to activate garage'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/garages/<garage_id>/extend-trial', methods=['POST'])
+def admin_extend_trial(garage_id):
+    """Admin endpoint to extend trial period"""
+    try:
+        data = request.json
+        days = data.get('days', 14)
+        
+        success = db_manager.extend_trial(garage_id, days)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': f'Trial extended by {days} days'
+            })
+        else:
+            return jsonify({'error': 'Failed to extend trial'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/admin/garages/<garage_id>', methods=['PUT'])
+def admin_update_garage(garage_id):
+    """Admin endpoint to update garage details"""
+    try:
+        data = request.json
+        success = db_manager.update_garage_info(garage_id, data)
+        
+        if success:
+            return jsonify({
+                'success': True,
+                'message': 'Garage updated successfully'
+            })
+        else:
+            return jsonify({'error': 'Failed to update garage'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def create_demo_accounts():
     """Create demo accounts if they don't exist"""
     demo_accounts = [
