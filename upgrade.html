@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upgrade Your Plan - Garage Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .pricing-card.popular {
+            border: 3px solid #FF6600;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: linear-gradient(135deg, #FF6600 0%, #ff8533 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .plan-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #1a202c;
+        }
+
+        .plan-price {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #FF6600;
+            margin-bottom: 0.5rem;
+        }
+
+        .plan-price span {
+            font-size: 1rem;
+            color: #718096;
+            font-weight: 400;
+        }
+
+        .plan-description {
+            color: #718096;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+        }
+
+        .features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .features li {
+            padding: 0.75rem 0;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .features li i {
+            color: #10b981;
+            font-size: 1.125rem;
+        }
+
+        .features li.unavailable {
+            opacity: 0.4;
+        }
+
+        .features li.unavailable i {
+            color: #e2e8f0;
+        }
+
+        .upgrade-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #FF6600 0%, #ff8533 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .upgrade-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upgrade-btn.secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .back-btn:hover {
+            opacity: 0.8;
+        }
+
+        .features-comparison {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        .features-comparison h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #1a202c;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .comparison-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .comparison-table td i {
+            color: #10b981;
+        }
+
+        .comparison-table td i.fa-times {
+            color: #ef4444;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .plan-price {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+
+        <div class="header">
+            <h1><i class="fas fa-crown"></i> Upgrade Your Plan</h1>
+            <p>Choose the perfect plan for your garage. Cancel anytime.</p>
+        </div>
+
+        <div class="pricing-grid">
+            <!-- Starter Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Starter</div>
+                <div class="plan-price">$29<span>/month</span></div>
+                <div class="plan-description">Perfect for small garages starting out</div>
+                
+                <ul class="features">
+                    <li><i class="fas fa-check-circle"></i> Up to 50 customers</li>
+                    <li><i class="fas fa-check-circle"></i> 100 invoices/month</li>
+                    <li><i class="fas fa-check-circle"></i> 2 staff users</li>
+                    <li><i class="fas fa-check-circle"></i> Basic reports</li>
+                    <li><i class="fas fa-check-circle"></i> Email support</li>
+                    <li class="unavailable"><i class="fas fa-times-circle"></i> SMS notifications</li>
+                    <li class="unavailable"><i class="fas fa-times-circle"></i> Advanced reports</li>
+                    <li class="unavailable"><i class="fas fa-times-circle"></i> API access</li>
+                </ul>
+
+                <button class="upgrade-btn" onclick="selectPlan('starter', 29)">
+                    <i class="fas fa-rocket"></i> Choose Starter
+                </button>
+            </div>
+
+            <!-- Professional Plan (Popular) -->
+            <div class="pricing-card popular">
+                <div class="popular-badge">⭐ Most Popular</div>
+                <div class="plan-name">Professional</div>
+                <div class="plan-price">$79<span>/month</span></div>
+                <div class="plan-description">Best for growing garages</div>
+                
+                <ul class="features">
+                    <li><i class="fas fa-check-circle"></i> Unlimited customers</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited invoices</li>
+                    <li><i class="fas fa-check-circle"></i> 10 staff users</li>
+                    <li><i class="fas fa-check-circle"></i> Advanced reports</li>
+                    <li><i class="fas fa-check-circle"></i> Priority support</li>
+                    <li><i class="fas fa-check-circle"></i> SMS notifications</li>
+                    <li><i class="fas fa-check-circle"></i> Inventory management</li>
+                    <li class="unavailable"><i class="fas fa-times-circle"></i> API access</li>
+                </ul>
+
+                <button class="upgrade-btn" onclick="selectPlan('professional', 79)">
+                    <i class="fas fa-crown"></i> Choose Professional
+                </button>
+            </div>
+
+            <!-- Enterprise Plan -->
+            <div class="pricing-card">
+                <div class="plan-name">Enterprise</div>
+                <div class="plan-price">$199<span>/month</span></div>
+                <div class="plan-description">For large operations</div>
+                
+                <ul class="features">
+                    <li><i class="fas fa-check-circle"></i> Everything in Pro</li>
+                    <li><i class="fas fa-check-circle"></i> Unlimited staff users</li>
+                    <li><i class="fas fa-check-circle"></i> API access</li>
+                    <li><i class="fas fa-check-circle"></i> Custom integrations</li>
+                    <li><i class="fas fa-check-circle"></i> Dedicated support</li>
+                    <li><i class="fas fa-check-circle"></i> Custom branding</li>
+                    <li><i class="fas fa-check-circle"></i> Multi-location</li>
+                    <li><i class="fas fa-check-circle"></i> White-label option</li>
+                </ul>
+
+                <button class="upgrade-btn" onclick="selectPlan('enterprise', 199)">
+                    <i class="fas fa-building"></i> Choose Enterprise
+                </button>
+            </div>
+        </div>
+
+        <!-- Features Comparison -->
+        <div class="features-comparison">
+            <h2>Detailed Features Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Starter</th>
+                        <th>Professional</th>
+                        <th>Enterprise</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Customers</td>
+                        <td>Up to 50</td>
+                        <td>Unlimited</td>
+                        <td>Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Invoices/Month</td>
+                        <td>100</td>
+                        <td>Unlimited</td>
+                        <td>Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Staff Users</td>
+                        <td>2</td>
+                        <td>10</td>
+                        <td>Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Inventory Management</td>
+                        <td><i class="fas fa-times"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td>SMS Notifications</td>
+                        <td><i class="fas fa-times"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Advanced Reports</td>
+                        <td><i class="fas fa-times"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td>API Access</td>
+                        <td><i class="fas fa-times"></i></td>
+                        <td><i class="fas fa-times"></i></td>
+                        <td><i class="fas fa-check"></i></td>
+                    </tr>
+                    <tr>
+                        <td>Support</td>
+                        <td>Email</td>
+                        <td>Priority</td>
+                        <td>Dedicated</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function selectPlan(planName, price) {
+            if (confirm(`Upgrade to ${planName.charAt(0).toUpperCase() + planName.slice(1)} plan for $${price}/month?\n\nThis is a demo. In production, this would redirect to payment gateway.`)) {
+                alert(`🎉 Thank you for choosing ${planName.charAt(0).toUpperCase() + planName.slice(1)}!\n\nIn production, you would be redirected to:\n✓ Stripe/PayPal payment\n✓ Complete billing information\n✓ Instant account upgrade\n\nFor now, enjoy exploring the system!`);
+                
+                // In production, redirect to payment gateway:
+                // window.location.href = `/checkout?plan=${planName}&price=${price}`;
+            }
+        }
+    </script>
+</body>
+</html>
