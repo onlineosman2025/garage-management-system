@@ -152,16 +152,30 @@ def login():
             return jsonify({
                 'success': True,
                 'access_token': f"token_{user_info['garage_id']}_{user_info['user_id']}",
+                'token': f"token_{user_info['garage_id']}_{user_info['user_id']}",
                 'user': {
                     'id': user_info['user_id'],
                     'email': user_info['email'],
                     'name': user_info['name'],
                     'role': user_info['role'],
                     'role_name': role_info.get('name', user_info['role']),
-                    'role_icon': role_info.get('icon', '👤')
+                    'role_icon': role_info.get('icon', '👤'),
+                    'garage_id': user_info['garage_id'],  # Add garage_id to user object
+                    'garage': {
+                        'garage_id': user_info['garage_id'],
+                        'garage_name': user_info['garage_name'],
+                        'owner_name': user_info.get('owner_name', user_info['name']),
+                        'email': user_info['email'],
+                        'currency': 'AED',
+                        'created_at': user_info.get('created_at'),
+                        'trial_end_date': trial_status.get('trial_end_date'),
+                        'trial_days_remaining': trial_status.get('days_remaining'),
+                        'subscription_plan': trial_status.get('subscription_plan', 'trial')
+                    }
                 },
                 'garage': {
                     'id': user_info['garage_id'],
+                    'garage_id': user_info['garage_id'],
                     'name': user_info['garage_name'],
                     'currency': 'AED'
                 },
